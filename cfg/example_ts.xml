@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<?xml-stylesheet type="text/xsl" href="testset.xsl"?>
+<TestSet name="example test set">
+
+    <Setup> 
+        <Script>d:/test/test.py</Script>
+        <Args>test set action arguments</Args>
+    </Setup>
+  
+    <Cleanup>
+        <Script>d:/test/test.pl</Script>
+        <Args>arg1 arg2 arg3</Args>
+    </Cleanup>
+
+    <Configuration name="Throughput 10ms 1/16 50:50 3MHz QAM64-3/4" >
+
+        <TestObject name="object name">
+            <Type>Base Station 16d</Type> 
+            <IP>10.0.0.3</IP>
+            <Description />
+            <Args />
+        </TestObject>
+
+        <Setup> 
+            <Script>d:/test/test.tcl</Script><Args>qam64-3/4</Args>
+        </Setup>
+        <Cleanup>
+            <Script>d:/test/test.py</Script><Args>arg1 arg2 arg3</Args>
+        </Cleanup>
+
+        <TestCase name="QAM64-3/4 1512 bytes">
+            <Setup>
+                <Script>d:/test/test.py</Script><Args /> 
+            </Setup>  
+            <Cleanup />
+            <TestStep name="traffic 1512 bytes" expected="pass">
+                <Script>d:/test/test.pl</Script><Args /> 
+            </TestStep>
+        </TestCase>
+  
+        <TestCase name="QAM64-3/4 512 bytes">
+            <Setup>
+                <Script>d:/test/test.tcl</Script><Args />
+            </Setup>
+            <Cleanup />
+            <TestStep name="traffic 512 bytes" expected="pass">
+                <Script>d:/test/test.tcl</Script><Args />
+            </TestStep>
+        </TestCase>
+  
+        <TestCase name="QAM64-3/4 68 bytes">
+            <Setup>
+                <Script>d:/test/test.py</Script><Args />
+            </Setup>
+            <Cleanup>
+                <Script>d:/test/test.pl</Script><Args>Cleanup_arg</Args>
+            </Cleanup>
+            <TestStep name="traffic 68 bytes" expected="pass">
+                <Script>d:/test/test.py</Script><Args>An argument </Args>
+            </TestStep>
+        </TestCase>
+    </Configuration>
+</TestSet>

@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="TestReport">
+    <xs:complexType>
+        <xs:all>
+        <xs:element name="TestSet" type="TestSet_def" 
+                                   minOccurs="1" maxOccurs="1" />
+        </xs:all>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="TestSet_def">
+     <xs:sequence>
+       <xs:element name="Generated" type="xs:string" maxOccurs="1" />
+       <xs:element name="Started" type="xs:string" maxOccurs="1" />
+       <xs:element name="Setup" type="Setup_def" 
+                                minOccurs="0" maxOccurs="1" />
+       <xs:element name="Cleanup" type="Cleanup_def" 
+                                minOccurs="0" maxOccurs="1" />
+       <xs:element name="Configuration" type="Configuration_def" 
+                                minOccurs="1" maxOccurs="unbounded" />
+     </xs:sequence>
+     <xs:attribute name="name" type="xs:string" use="required" />
+  </xs:complexType>
+
+    <xs:complexType name="Configuration_def">
+      <xs:sequence>
+        <xs:element name="Setup" type="Setup_def" 
+                                 minOccurs="0" maxOccurs="1" />
+        <xs:element name="Cleanup" type="Cleanup_def" 
+                                   minOccurs="0" maxOccurs="1" />
+        <xs:element name="TestCase" type="TestCase_def" 
+                                    minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+       <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
+
+    <xs:complexType name="TestCase_def">
+      <xs:sequence>
+        <xs:element name="Setup" type="Setup_def" 
+                                 minOccurs="0" maxOccurs="1" />
+        <xs:element name="Cleanup" type="Cleanup_def" 
+                                   minOccurs="0" maxOccurs="1" />
+        <xs:element name="TestStep" type="TestStep_def" 
+                                    minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="status">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="pass" />  
+                    <xs:enumeration value="fail" />  
+                    <xs:enumeration value="xfail" />  
+                    <xs:enumeration value="not tested" />  
+                </xs:restriction>
+            </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="TestStep_def">
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="action" type="xs:string" use="required" />
+      <xs:attribute name="expected-status" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="pass" />  
+            <xs:enumeration value="fail" />  
+            <xs:enumeration value="not tested" />  
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="status" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="pass" />  
+            <xs:enumeration value="fail" />  
+            <xs:enumeration value="xfail" />  
+            <xs:enumeration value="not tested" />  
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="Setup_def">
+        <xs:attribute name="action" type="xs:string" />
+        <xs:attribute name="status">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="pass" />  
+                    <xs:enumeration value="fail" />  
+                    <xs:enumeration value="xfail" />  
+                    <xs:enumeration value="not tested" />  
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="Cleanup_def">
+        <xs:attribute name="action" type="xs:string" />
+        <xs:attribute name="status">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="pass" />  
+                    <xs:enumeration value="fail" />  
+                    <xs:enumeration value="xfail" />  
+                    <xs:enumeration value="not tested" />  
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+</xs:schema>

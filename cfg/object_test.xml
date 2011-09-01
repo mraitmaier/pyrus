@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="testset.xsl"?>
+<TestSet name="Sample Test Set">
+    <Setup>
+        <Script>/home/test/Code/python/telsima/tmf2/test/test.tcl</Script>
+        <Args />
+    </Setup>
+
+    <Cleanup>
+        <Script>/home/test/Code/python/telsima/tmf2/test/test.tcl</Script>
+        <Args />
+    </Cleanup>
+
+    <Configuration name="Sample Configuration">
+
+        <TestObject>
+        </TestObject>
+
+        <Setup>
+            <Script>/home/test/Code/python/telsima/tmf2/test/test.pl</Script>
+            <Args />
+        </Setup>
+
+        <Cleanup />
+
+        <TestCase name="Sample TestCase">
+
+            <Setup>
+                <Script>/home/test/Code/python/telsima/tmf2/test/test.py</Script>
+                <Args />
+            </Setup>
+
+            <Cleanup>
+                <Script>/home/test/Code/python/telsima/tmf2/test/test.pl</Script>
+                <Args />
+            </Cleanup>
+
+            <TestStep name="Sample Test Step" expected="pass"> 
+                <Script>/home/test/Code/python/telsima/tmf2/test/test.tcl</Script>
+                <Args />
+            </TestStep>
+
+        </TestCase>
+
+        <TestCase name="Sample TestCase 2">
+
+            <Setup />
+
+            <Cleanup />
+
+            <TestStep name="Sample Test Step" expected="pass"> 
+                <Script>/home/test/Code/python/telsima/tmf2/test/test.py</Script>
+                <Args />
+            </TestStep>
+
+        </TestCase>
+
+    </Configuration>
+
+    <Configuration name="Sample Configuration 2">
+
+        <TestObject>
+        </TestObject>
+
+        <Setup />
+
+        <Cleanup />
+
+        <TestCase name="Sample TestCase 3">
+
+            <Setup />
+
+            <Cleanup />
+
+            <TestStep name="Sample Test Step" expected="pass"> 
+                <Script>/home/test/Code/python/telsima/tmf2/test/test.tcl</Script>
+                <Args />
+            </TestStep>
+        </TestCase>
+
+    </Configuration>
+
+</TestSet>

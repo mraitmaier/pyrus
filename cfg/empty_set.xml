@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="testset.xsl"?>
+<TestSet name="Empty Test Set">
+<Setup>
+    <Action>
+         <Script>/home/test/Code/python/telsima/tmf2/test/test.tcl</Script>
+         <Args />
+     </Action>
+</Setup>
+
+<Cleanup>
+    <Action>
+         <Script>/home/test/svn/svt/python/atf/test/test.tcl</Script>
+         <Args />
+    </Action>
+</Cleanup>
+
+<Configuration name="Sample Configuration">
+
+ <TestObject name="object name">
+      <Type>Base Station 16d</Type>
+      <IP>10.0.0.3</IP>
+      <Description />
+      <Args />
+ </TestObject>
+
+ <Setup>
+    <Action>
+        <Script>/home/test/svn/svt/python/atf/test/test.pl</Script>
+        <Args />
+    </Action>
+  </Setup>
+
+  <Cleanup />
+
+  <TestCase name="Sample TestCase">
+
+      <Setup>
+        <Action>
+            <Script>/home/test/svn/svt/python/atf/test/test.py</Script>
+            <Args />
+        </Action>
+      </Setup>
+
+      <Cleanup>
+        <Action>
+            <Script>/home/test/svn/svt/python/atf/test/test.pl</Script>
+            <Args />
+        </Action>
+      </Cleanup>
+
+      <TestStep name="Sample Test Step" expected="pass"> 
+        <Script>/home/test/svn/svt/python/atf/test/test.tcl</Script>
+        <Args />
+      </TestStep>
+
+  </TestCase>
+
+  <TestCase name="Sample TestCase 2">
+
+      <Setup />
+
+      <Cleanup />
+
+      <TestStep name="Sample Test Step" expected="pass"> 
+        <Script>/home/test/svn/svt/python/atf/test/test.py</Script>
+        <Args />
+      </TestStep>
+
+  </TestCase>
+
+</Configuration>
+
+<Configuration name="Sample Configuration 2">
+
+  <TestObject name="object name">
+      <Type></Type>
+      <IP></IP>
+      <Description />
+      <Args />
+  </TestObject>
+
+  <Setup />
+
+  <Cleanup />
+
+  <TestCase name="Sample TestCase 3">
+
+      <Setup />
+
+      <Cleanup />
+
+      <TestStep name="Sample Test Step" expected="pass"> 
+        <Script>/home/test/svn/svt/python/atf/test/test.tcl</Script>
+        <Args />
+      </TestStep>
+  </TestCase>
+
+</Configuration>
+
+</TestSet>

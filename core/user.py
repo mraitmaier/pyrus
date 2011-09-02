@@ -43,8 +43,11 @@ class Role(object):
     """
     USER = 0
     GUEST = 1
-    ADMIN = 2
-    values = [USER, GUEST, ADMIN]
+    TESTER = 2
+    DEVELOPER = 3
+    MANAGER = 4
+    ADMIN = 5
+    values = [USER, GUEST, TESTER, DEVELOPER, MANAGER, ADMIN]
     
     @staticmethod
     def convert(strVal):
@@ -55,6 +58,12 @@ class Role(object):
             val = Role.USER
         elif strVal in ["admin", "administrator", "administrators"]:
             val = Role.ADMIN
+        elif strVal in ["tester"]:
+            val = Role.TESTER
+        elif strVal in ["developer"]:
+            val = Role.DEVELOPER
+        elif strVal in ["manager"]:
+            val = Role.MANAGER
         return val
 
     @staticmethod
@@ -66,6 +75,12 @@ class Role(object):
             return "admin"
         elif val == Role.GUEST:
             return "guest"
+        elif val == Role.TESTER:
+            return "tester"
+        elif val == Role.DEVELOPER:
+            return "developer"
+        elif val == Role.MANAGER:
+            return "manager"
         else:
             return "unknown role"
 
@@ -75,7 +90,7 @@ class User(Exception):
     """
 
     def __init__(self, username, password, 
-                       fullname="", email="", role=Role.USER):
+                       fullname="", email="", role=Role.TESTER):
         assert username is not None
         assert password is not None
         assert role in Role.values

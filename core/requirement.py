@@ -75,7 +75,7 @@ class Requirement(object):
     def __init__(self, name, short="", description="",
                              status=RequirementStatus(RequirementStatus.NEW),
                              test_status=TestableStatus.VALID, 
-                             priority=Priority.MEDIUM):
+                             priority=Priority.MEDIUM, changelog=""):
         assert name is not None
         self._name = name
         self._short = short
@@ -83,6 +83,7 @@ class Requirement(object):
         self._status = status
         self._test_status = test_status
         self._prty = priority
+        self._changelog = changelog
 
     def __str__(self):
         s = "\n".join(("Requirement: {}".format(self.name),
@@ -90,7 +91,8 @@ class Requirement(object):
                        "  priority: {}".format(self.priority),
                        "  status: {}".format(self.priority),
                        "  teststatus: {}".format(self.testStatusToString()),
-                       "  description:\n{}".format(self.description)
+                       "  description:\n{}".format(self.description),
+                       "  changelog:\n{}".format(self.changelog)
                        ))
         return s
 
@@ -118,6 +120,10 @@ class Requirement(object):
     def priority(self):
         return self._prty
 
+    @property
+    def changelog(self):
+        return self._changelog
+
     def testStatusToString(self):
         """ """
         if self.testStatus == TestableStatus.VALID:
@@ -141,6 +147,7 @@ class _RequirementJsonEncoder(json.JSONEncoder):
             d["priority"] = Priority.valToStr(obj.priority)
             d["testStatus"] = obj.testStatusToString()
             d["reqStatus"] = str(obj.status)
+            d["changelog"] = obj.changelog
             return d
         return json.JSONEncoder(obj)
 
@@ -174,6 +181,7 @@ class RequirementJsonDecoder(json.JSONDecoder):
         pri = Priority.ERROR
         status = RequirementStatus.UNKNOWN
         tstatus = None
+        log = ""
         if "name" in d:
             name = d["name"]
         if "short" in d:
@@ -186,9 +194,11 @@ class RequirementJsonDecoder(json.JSONDecoder):
             status = self.__statusToVal(d["status"])
         if "testStatus" in d:
             tstatus = TestableStatus.strToVal(d["testStatus"])
+        if "changelog" in d:
+            log = d["changelog"]
         assert name is not None, "Requirement needs a name..."
         assert pri is not None, "Requirement needs a priority..."
-        return Requirement(name, short, desc, status, tstatus, pri)
+        return Requirement(name, short, desc, status, tstatus, pri, log)
 
 # TESTING ####################################################################
 def test_TestableStatus():

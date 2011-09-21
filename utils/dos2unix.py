@@ -21,8 +21,8 @@ __author__ = "Miran R."
 import os, sys
 
 # check platform
-pfrom = sys.platform
-if pform in ["linux2", "cygwin"]:
+pform = sys.platform
+if pform in ["linux2", "linux3", "cygwin"]:
     EXE = "dos2unix"
 elif pform in ["win32"]:
     EXE = "dos2unix.exe"

@@ -68,7 +68,7 @@ class TestReport(object):
         return "\n".join(("<TestReport>", s, f, ts, "</TestReport>"))
 
 class _TestReportJsonEncoder(json.JSONEncoder):
-    """Custom JSON encoder for the TestRun class"""
+    """Custom JSON encoder for the TestReport class"""
 
     def default(self, obj):
         if isinstance(obj, TestReport):
@@ -80,7 +80,7 @@ class _TestReportJsonEncoder(json.JSONEncoder):
         return json.JSONEncoder(obj)
 
 class TestReportJsonDecoder(json.JSONDecoder):
-    """Custom JSON decoder for the TestRun class"""
+    """Custom JSON decoder for the TestReport class"""
     
     def decode(self, jsontext):
         # convert JSON into python dictionary
@@ -96,7 +96,7 @@ class TestReportJsonDecoder(json.JSONDecoder):
             started = datetime.strptime(runDict["started"], _DATETIME_FORMAT)
         if "finished" in runDict:
             finished = datetime.strptime(runDict["finished"], _DATETIME_FORMAT)
-        assert testset is not None, "TestRun needs a TestSet to run..."
+        assert testset is not None, "TestReport needs a TestSet to run..."
         return TestReport(testset, started, finished)
 
 # TESTING ####################################################################

@@ -4,10 +4,15 @@
    NOTE: this module should not be run as a standalone scripts, excepts for
    built-in tests.
 
+   NOTE: This module is to be regarded as obsolete! TestReport class is the one
+   to go.
+
 """
 # HISTORY ####################################################################
 #                       
 # 0.0.1     Mar11   MR # This is just an example hot to write history notes
+# XXXXX     Sep01   MR # This module is now obsolete; TestReport class is the
+#                        one to use!!!
 #                       
 ##############################################################################
 from __future__ import print_function

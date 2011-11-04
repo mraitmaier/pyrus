@@ -176,10 +176,10 @@ class Runner(object):
             failed = True
         return failed
 
-    def _cleanupCase(case):
+    def _cleanupCase(self, case):
         """Clean up statuses for steps and cleanup action when setup fails."""
         assert case is not None
-        for step in case:
+        for step in case.steps:
             step.status.result = TestStatus.NOT_TESTED
         case.cleanup.status = TestStatus.NOT_TESTED
         

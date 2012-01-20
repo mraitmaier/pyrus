@@ -41,4 +41,6 @@ if __name__ == "__main__":
         y = TestStatus.BLAH
     except AttributeError as exc:
         print("ERROR: {}".format(exc))
-
+    print("It's iterable!")
+    for v in TestStatus:
+        print(v)

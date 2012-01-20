@@ -84,7 +84,7 @@ class Role(object):
         else:
             return "unknown role"
 
-class User(Exception):
+class User(object):
     """
         User - class used for username/password administration 
     """

@@ -26,35 +26,7 @@ class _Action(object):
     Should not be instantiated, use derived classes!
     """
 
-    def __init__(self, val=0):
-        self.returncode = val  # test return code
-        self.output = ""   # output text after script has been run
-
-    @property
-    def returncode(self):
-        """The default test status property"""
-        return self._rc
-
-    @returncode.setter
-    def returncode(self, val):
-        """The default test status property setter"""
-        assert val is not None, "Test result cannot be empty"
-        self._rc = val
-
-    @property
-    def output(self):
-        """An 'output' property getter."""
-        return self._output
-
-    @output.setter
-    def output(self, text):
-        """An 'output' property setter."""
-        self._output = text
-
     def isAutomated(self):
-        raise NotImplementedError
-
-    def isScripted(self):
         raise NotImplementedError
 
     def execute(self):
@@ -84,9 +56,6 @@ class NoOpAction(_Action):
         return "No action"
 
     def isAutomated(self):
-        return True
-
-    def isScripted(self):
         return False
 
     def toText(self):
@@ -96,7 +65,7 @@ class NoOpAction(_Action):
         return ""
 
     def toHtml(self, **kwargs):
-        # kwargs are here for compatibility with ScriptedAction and ignored
+        # kwargs are here for compatibility with AutomatedAction and ignored
         return ""
 
     def toJson(self):
@@ -114,12 +83,11 @@ class ManualAction(_Action):
     This class is to be considered simply as container for manual tests. It's
     just a how-to text to execute the test.
     """
-    def __init__(self, description, status=0):
+    def __init__(self, description):
         self.description = description
-        super(ManualAction, self).__init__(status)
 
     def __str__(self):
-        return "{} RC={}".format(self.description, self.returncode)
+        return "{}".format(self.description)
 
     @property
     def description(self):
@@ -133,9 +101,6 @@ class ManualAction(_Action):
     def isAutomated(self):
         return False
 
-    def isScripted(self):
-        return False
-
     def toText(self):
         return self.description
 
@@ -146,7 +111,7 @@ class ManualAction(_Action):
         return "<Description>{}</Description>".format(self.description)
 
     def toHtml(self, **kwargs):
-        # kwargs are for here compatibility with ScriptedAction and ignored
+        # kwargs are for here compatibility with AutomatedAction and ignored
         return self.description
 
     def execute(self, **kwargs):
@@ -154,9 +119,9 @@ class ManualAction(_Action):
         Implemented only to satisfy 'Executable' interface"""
         pass
 
-class ScriptedAction(_Action):
+class AutomatedAction(_Action):
     """
-        ScriptedAction - represents the single scripted automated action
+        AutomatedAction - represents the single scripted automated action
 
         The 'script' property represents the actual script to be executed.
         The 'args' property represents the additional arguments that script.
@@ -167,9 +132,10 @@ class ScriptedAction(_Action):
     """
 
     def __init__(self, script, args="", status=-1, output="" ):
-        super(ScriptedAction, self).__init__(status)
-        self._script = script # script to be executed
-        self._args = args     # additional arguments for script (if needed)
+        self._script = script    # script to be executed
+        self._args = args        # additional arguments for script (if needed)
+        self.returncode = status # test return code
+        self.output = ""         # output text after script has been run
 
     def __str__(self):
         return "{0} {1}".format(self.script, self.args) 
@@ -184,12 +150,29 @@ class ScriptedAction(_Action):
         """An 'args' property getter"""
         return self._args
 
+    @property
+    def returncode(self):
+        """The default test status property"""
+        return self._rc
+
+    @returncode.setter
+    def returncode(self, val):
+        """The default test status property setter"""
+        assert val is not None, "Test result cannot be empty"
+        self._rc = val
+
+    @property
+    def output(self):
+        """An 'output' property getter."""
+        return self._output
+
+    @output.setter
+    def output(self, text):
+        """An 'output' property setter."""
+        self._output = text
+
     def isAutomated(self):
         """Is this action automated?"""
-        return True
-
-    def isScripted(self):
-        """Is this action scripted?"""
         return True
 
     def toText(self):
@@ -202,8 +185,9 @@ class ScriptedAction(_Action):
     def toXml(self):
         s = "<Script>{}</Script>".format(self.script)
         a = "<Args>{}</Args>".format(self.args)
+        r = "<ReturnCode>{}</ReturnCode>".format(self.returncode)
         o = "<Output>{}</Output>".format(self.output)
-        return "".join((s, a, "\n", o, "\n"))
+        return "".join((s, a, "\n", r, "\n", o, "\n"))
 
     def toHtml(self, **kwargs):
         """Return an HTML representation of the class instance.
@@ -236,11 +220,11 @@ class ScriptedAction(_Action):
 class _ActionJsonEncoder(json.JSONEncoder):
     """Custom JSON encoder for Action classes."""
     def default(self, obj):
-        if isinstance(obj, (NoOpAction, ScriptedAction, ManualAction)):
+        if isinstance(obj, (NoOpAction, AutomatedAction, ManualAction)):
             d = dict()
             if isinstance(obj, NoOpAction):
                 return d
-            elif isinstance(obj, ScriptedAction):
+            elif isinstance(obj, AutomatedAction):
                 d["script"] = obj.script
                 if hasattr(obj, "args"):
                     d["args"] = obj.args
@@ -261,17 +245,17 @@ class ActionJsonDecoder(json.JSONDecoder):
         act = NoOpAction()
         d = json.loads(jsontext)
         # if we have a 'script' keyword in JSON, then we're dealing with
-        # ScriptedAction
+        # AutomatedAction
         if "script" in d:
             status = int(d["rc"]) if "rc" in d else -1
             args = d["args"] if "args" in d else ""
             output = d["output"] if "output" in d else ""
-            act = ScriptedAction(d["script"], args, status, output)
+            act = AutomatedAction(d["script"], args, status, output)
         # or, if "description" keyword has been found in JSON, 
         # we're dealing with ManualAction
         elif "description" in d:
             status = int(d["rc"]) if "rc" in d else -1
-            act = ManualAction(d["description"], status)
+            act = ManualAction(d["description"])
         return act
             
 # TESTING #####################################################################
@@ -280,9 +264,7 @@ def runtests():
     print(">>> NoOpAction...")
     a = NoOpAction()
     print(str(a))
-    print(a.returncode)
     print(a.isAutomated())
-    print(a.isScripted())
     j = a.toJson()
     print("JSON=" + j)
     print("executing...")
@@ -290,13 +272,12 @@ def runtests():
     print("XML={}".format(a.toXml()))
     blah = ActionJsonDecoder().decode(j)
     print("Decoded JSON=" + str(blah))
-    print(">>> ScriptedAction...")
-    b = ScriptedAction("/this/is/a/script/path", "arg 12 34")
+    print(">>> AutomatedAction...")
+    b = AutomatedAction("/this/is/a/script/path", "arg 12 34")
     print(str(b))
-    b = ScriptedAction("test/scripts/test.py", "arg 12 34")
+    b = AutomatedAction("test/scripts/test.py", "arg 12 34")
     print(str(b))
     print(b.isAutomated())
-    print(b.isScripted())
     j = b.toJson()
     print(j)
     print("executing...")

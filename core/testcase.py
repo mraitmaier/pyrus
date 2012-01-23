@@ -7,7 +7,9 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Mar11   MR # This is just an example hot to write history notes
+# 0.0.1     Mar11   MR # initial version
+# 0.0.2     Jan12   MR # simplification: TestResult is deprecated, using
+#                        (new) TestStatus instead
 #                       
 ##############################################################################
 from __future__ import print_function
@@ -20,9 +22,9 @@ import json
 import StringIO
 from testable import _Testable
 from runnable import Runnable
-from action import ScriptedAction, NoOpAction, ManualAction, ActionJsonDecoder
+from action import AutomatedAction, NoOpAction, ManualAction, ActionJsonDecoder
 from teststep import TestStep, TestStepJsonDecoder
-from testresult import TestStatus, TestResult
+from teststatus import TestStatus, toTestStatus
 
 class TestCase(_Testable, Runnable):
     """
@@ -34,11 +36,10 @@ class TestCase(_Testable, Runnable):
     """
 
     def __init__(self, name, description="", 
-                             expected=TestResult(TestStatus.PASS), 
+                             expected=TestStatus.PASS, 
                              setup=None, cleanup=None, tsteps=None,
-                             status=TestResult(TestStatus.NOT_TESTED)):
+                             status=TestStatus.NOT_TESTED):
         assert name is not None
-        assert isinstance(expected, TestResult) 
         super(TestCase, self).__init__(name, setup, cleanup)
         self._steps = tsteps if tsteps is not None else list()
         self._desc = description
@@ -70,7 +71,6 @@ class TestCase(_Testable, Runnable):
 
     @status.setter
     def status(self, val):
-        assert isinstance(val, TestResult)
         self._status = val
 
     @property
@@ -104,8 +104,10 @@ class TestCase(_Testable, Runnable):
 
     def toHtml(self, short=True, cssClass=None):
         """Convert the instance into HTML representation."""
-        sStatus = TestResult(self.setup.returncode)
-        cStatus = TestResult(self.cleanup.returncode)
+        sStatus = TestStatus.PASS if self.setup.returncode == 0 else \
+                TestStatus.FAIL
+        cStatus = TestStatus.PASS if self.cleanup.returncode == 0 else \
+                TestStatus.FAIL
         if short:
             return self._shortHtml(cssClass, sStatus, cStatus)
         return self._longHtml(cssClass, sStatus, cStatus)
@@ -115,10 +117,7 @@ class TestCase(_Testable, Runnable):
 
     def _longHtml(self, cssClass, sStatus, cStatus):
         """Return longer and prettier HTML version of the instance."""
-        if cssClass:
-            d = """<div class="{}">""".format(cssClass)
-        else:
-            d = "<div>"
+        d = """<div class="{}">""".format(cssClass) if cssClass else "<div>"
         h = "<h3>Test Case: {}</h3>".format(self.name)    
         dsc = "<p>{}</p>".format(self.description)
         s = "<p><b>Setup:</b> {}<br>".format(self.setup.toHtml(short=False))
@@ -128,10 +127,7 @@ class TestCase(_Testable, Runnable):
 
     def _shortHtml(self, cssClass, sStatus, cStatus):
         """Return longer and prettier HTML version of the instance."""
-        if cssClass:
-            d = """<div class="{}">""".format(cssClass)
-        else:
-            d = "<div>"
+        d = """<div class="{}">""".format(cssClass) if cssClass else "<div>"
         h = "<h3>Test Case: {}</h3>".format(self.name)    
         s = "<p><table><tr><td>Setup</td><td>{}</td><td>{}</td></tr>".format(
                 self.setup.toHtml(), str(sStatus)) 
@@ -146,13 +142,13 @@ class TestCase(_Testable, Runnable):
     def _evaluate(self):
         """Self-evaluate the test case status."""
         # FIXME: Is this OK?!
-        self.status = TestResult(TestStatus.NOT_TESTED)   
+        self.status = TestStatus.NOT_TESTED   
         if self.setup.returncode != 0:
-                self.status.result = TestStatus.FAIL
+                self.status= TestStatus.FAIL
                 return self.status
         for s in self.steps:
-            if s.status.result != TestStatus.PASS:
-                self.status.result = TestStatus.FAIL
+            if s.status != TestStatus.PASS:
+                self.status = TestStatus.FAIL
                 break
         return self.status
 
@@ -208,8 +204,8 @@ class TestCaseJsonDecoder(json.JSONDecoder):
         name = "Untitled test case"
         setup = []
         cleanup = []
-        expected = TestResult(TestStatus.NOT_TESTED)
-        status = TestResult(TestStatus.NOT_TESTED)
+        expected = TestStatus.NOT_TESTED
+        status = TestStatus.NOT_TESTED
         steps = None
         #    
         if "name" in tcDict:
@@ -217,9 +213,9 @@ class TestCaseJsonDecoder(json.JSONDecoder):
         if "description" in tcDict:
             desc = tcDict["description"]
         if "expected" in tcDict:
-            expected = TestResult(TestStatus.convert(tcDict["expected"]))
+            expected = toTestStatus(tcDict["expected"])
         if "status" in tcDict:
-            status = TestResult(TestStatus.convert(tcDict["status"]))
+            status = toTestStatus(tcDict["status"])
         if "steps" in tcDict:
             steps = []
             for tc in tcDict["steps"]:
@@ -239,8 +235,8 @@ def runtests():
     print(tc.toJson())
     print()
     # add some setup and cleanup actions
-    a1 = ScriptedAction("test/scripts/test.py", "arg1")
-    a2 = ScriptedAction("test/scripts/test.tcl", "arg1 arg2")
+    a1 = AutomatedAction("test/scripts/test.py", "arg1")
+    a2 = AutomatedAction("test/scripts/test.tcl", "arg1 arg2")
     tc.setup = a1
     tc.cleanup = a2
     print(str(tc))

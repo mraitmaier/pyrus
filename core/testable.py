@@ -24,9 +24,7 @@ class _Testable(object):
     def __init__(self, name, setup, cleanup):
         self._name = name
         self._setup = setup if setup is not None else NoOpAction()
-#        self._setup = setup 
         self._cleanup = cleanup if setup is not None else NoOpAction()
-#        self._cleanup = cleanup 
         # let's check the setup/cleanup instance
         assert isinstance(self._setup, _Action)
         assert isinstance(self._cleanup, _Action)
@@ -52,18 +50,6 @@ class _Testable(object):
     def cleanup(self, val):
         assert isinstance(val, _Action)
         self._cleanup = val
-
-#    def addSetupAction(self, action):
-#        """ """
-#        assert isinstance(action, _Action)
-#        self._setup.append(action)
-#        print("DEBUG: adding setup action for '{}'".format(self.name))
-
-#    def addCleanupAction(self, action):
-#        """ """
-#        assert isinstance(action, _Action)
-#        self._cleanup.append(action)
-#        print("DEBUG: adding cleanup action for '{}'".format(self.name))
 
     def toJson(self):
         raise NotImplementedError

@@ -15,8 +15,8 @@ __version__ = "0.0.1"
 __author__ = "Miran R."
 
 import json
-from action import ScriptedAction, NoOpAction, ManualAction, ActionJsonDecoder
-from testresult import TestStatus, TestResult
+from action import AutomatedAction, NoOpAction, ManualAction, ActionJsonDecoder
+from teststatus import TestStatus, toTestStatus
 from error import Error
 
 class TestStep(object):
@@ -24,10 +24,9 @@ class TestStep(object):
     """
 
     def __init__(self, name, action=NoOpAction(),
-                             expected=TestResult(TestStatus.PASS),
-                             status=TestResult(TestStatus.NOT_TESTED)):
+                             expected=TestStatus.PASS,
+                             status=TestStatus.NOT_TESTED):
         assert name is not None
-        assert isinstance(expected, TestResult) 
         self.action = action
         self._name = name
         self._expected = expected
@@ -46,7 +45,7 @@ class TestStep(object):
 
     @action.setter
     def action(self, action):
-        assert isinstance(action, (NoOpAction, ManualAction, ScriptedAction))
+        assert isinstance(action, (NoOpAction, ManualAction, AutomatedAction))
         self._action = action
 
     @property
@@ -63,7 +62,6 @@ class TestStep(object):
     
     @status.setter
     def status(self, val):
-        assert isinstance(val, TestResult)
         self._status = val
 
     def toJson(self):
@@ -116,31 +114,29 @@ class TestStep(object):
 
     def _evaluate(self):
         """Evaluates the execution of the test step."""
-        self.status = TestResult(TestStatus.FAIL)
+        self.status = TestStatus.FAIL
         # we evaluate the action's return code value
         if self.action.returncode == 0:
-            status = TestResult(TestStatus.PASS) 
+            status = TestStatus.PASS 
         else: 
-            status = TestResult(TestStatus.FAIL) 
+            status = TestStatus.FAIL 
         # now we compare it to expected value
         # test case passes only when: 
         #   1. expected=pass and status=pass
         #   2. expected=expected-fail and status=fail
-        if (status.result == TestStatus.PASS and 
-            self.expected.result == TestStatus.PASS):
-                self.status.result = status.result
-        elif (status.result == TestStatus.FAIL and
-              self.expected.result == TestStatus.XFAIL):
-                self.status.result = TestStatus.PASS
+        if (status == TestStatus.PASS and self.expected == TestStatus.PASS):
+                self.status = status
+        elif (status == TestStatus.FAIL and self.expected == TestStatus.XFAIL):
+                self.status = TestStatus.PASS
         return self.status
 
     def execute(self, **kwargs):
         """ """
         self.action.execute(**kwargs)
-        if self.action.isAutomated() and self.action.isScripted():
+        if self.action.isAutomated():
             return self._evaluate(), self.action.output
         else:
-            return TestResult(TestStatus.NOT_TESTED), ""
+            return TestStatus.NOT_TESTED, ""
 
 class _TestStepJsonEncoder(json.JSONEncoder):
     """Custom JSON encoder for TestStep class"""
@@ -159,16 +155,16 @@ class TestStepJsonDecoder(json.JSONDecoder):
 
     def decode(self, jsontext):
         stepDict = json.loads(jsontext)
-        expected = TestResult(TestStatus.NOT_TESTED)
+        expected = TestStatus.NOT_TESTED
         name = "Untitled test step"
         if "name" in stepDict:
             name = stepDict["name"]
         if "expected" in stepDict:
-            expected = TestResult(TestStatus.convert(stepDict["expected"]))
+            expected = toTestStatus(stepDict["expected"])
         if "action" in stepDict:
             action = ActionJsonDecoder().decode(stepDict["action"])
         if "status" in stepDict:
-            status = TestResult(TestStatus.convert(stepDict["status"]))
+            status = toTestStatus(stepDict["status"])
         else:
             raise Error("TestStep needs an action...")
         return TestStep(name, action, expected, status) 
@@ -179,8 +175,8 @@ def runtests():
     s = TestStep("a test step")
     print(str(s))
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    act = ScriptedAction("test/scripts/test.py", "arg1")
-    s = TestStep("a different test step", act, TestResult(TestStatus.XFAIL))
+    act = AutomatedAction("test/scripts/test.py", "arg1")
+    s = TestStep("a different test step", act, TestStatus.XFAIL)
     j = s.toJson()
     print(j)
     ts = TestStepJsonDecoder().decode(j)
@@ -191,15 +187,15 @@ def runtests():
     print("RC={} Output:\n'{}'".format(str(res), output))
     print("XML='{}'".format(s.toXml()))
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    act2 = ScriptedAction("test/scripts/test.py")
-    s2 = TestStep("another test step", act2, TestResult(TestStatus.PASS))
+    act2 = AutomatedAction("test/scripts/test.py")
+    s2 = TestStep("another test step", act2, TestStatus.PASS)
     print("Executing again...")
     rs, out = s2.execute()
     print(str(s2))
     print("RC={} Output:\n'{}'".format(str(rs), out))
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    act = ScriptedAction("test/scripts/tet.py")
-    s2 = TestStep("false test step", act, TestResult(TestStatus.XFAIL))
+    act = AutomatedAction("test/scripts/tet.py")
+    s2 = TestStep("false test step", act, TestStatus.XFAIL)
     print("Executing again...")
     rs, out = s2.execute()
     print(str(s2))

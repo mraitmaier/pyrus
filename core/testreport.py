@@ -7,7 +7,7 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Apr11   MR # This is just an example hot to write history notes
+# 0.0.1     Apr11   MR # Initial version
 #                       
 ##############################################################################
 from __future__ import print_function

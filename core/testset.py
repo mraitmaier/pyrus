@@ -7,13 +7,15 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Mar11   MR # This is just an example hot to write history notes
+# 0.0.1     Mar11   MR # initial version
+# 0.0.2     Jan12   MR # simplification: Configuration is no-more, TestSet
+#                        contains list of TestCase-s 
 #                       
 ##############################################################################
 from __future__ import print_function
 
 __description__ = "TestSet class implementation"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __author__ = "Miran R."
 
 import json
@@ -21,33 +23,41 @@ import StringIO
 from runnable import Runnable
 from testplan import TestPlan
 from action import ActionJsonDecoder
-from configuration import ConfigJsonDecoder
-from testresult import TestResult
+from testcase import TestCaseJsonDecoder
+from teststatus import TestStatus
+from sut import SystemUnderTest, SutJsonDecoder
 
 class TestSet(TestPlan, Runnable):
     """
         TestSet -
     """
 
-    def __init__(self, name, testplan, setup=None, cleanup=None, configs=None):
+    def __init__(self, name, testplan, 
+                             setup=None, cleanup=None, cases=None, sut=None):
         assert name is not None
         super(TestSet, self).__init__(name, setup, cleanup)
         # a list of configurations
-        self._cfgs = configs if configs is not None else [] 
+        self._cases = cases if cases is not None else [] 
         self._plan = testplan # a testplan name to which set is connected
+        self._sut = sut if sut is not None else SystemUnderTest("Empty SUT")
 
     def __str__(self):
         s = "\n".join(("test set: {}".format(self.name),
                        "  belongs to '{}'".format(self._plan),
+                       "  {}".format(str(self._sut)),
                        "  setup={}".format(str(self.setup)),
                        "  cleanup={}".format(str(self.cleanup)),
-                       "  configs={}".format([str(s) for s in self.configs]),
+                       "  cases={}".format([str(s) for s in self.testcases]),
                        ))
         return s
 
     @property
     def testplan(self):
         return self._plan
+
+    @property
+    def systemUnderTest(self):
+        return self._sut
 
     def toJson(self):
         """ """
@@ -59,13 +69,14 @@ class TestSet(TestPlan, Runnable):
 
     def toXml(self):
         """ """
+        sut = self.systemUnderTest.toXml()
         n = """<TestSet name="{}">""".format(self.name)
         p = "<TestPlan>{}</TestPlan>".format(self.testplan)
         s = "<Setup>\n{}</Setup>".format(self.setup.toXml())
         c = "<Cleanup>\n{}</Cleanup>".format(self.cleanup.toXml())
-        cfgs = reduce(lambda x,y: "\n".join((x, y)),
-                    [cfg.toXml() for cfg in self.configs])
-        return "\n".join((n, p, s, c, cfgs, "</TestSet>\n"))
+        cases = reduce(lambda x,y: "\n".join((x, y)),
+                    [case.toXml() for case in self.testcases])
+        return "\n".join((n, p, sut, s, c, cases, "</TestSet>\n"))
 
     def toHtml(self, short=True, cssClass=None):
         """Return a HTML representation of the class"""
@@ -74,8 +85,10 @@ class TestSet(TestPlan, Runnable):
         return self._longHtml(cssClass)   
 
     def _shortHtml(self, cssClass):       
-        sStatus = str(TestResult(self.setup.returncode))
-        cStatus = str(TestResult(self.cleanup.returncode))
+        sStatus = TestStatus.PASS if self.setup.returncode == 0 else \
+                TestStatus.FAIL
+        cStatus = TestStatus.PASS if self.cleanup.returncode == 0 else \
+                TestStatis.FAIL
         if cssClass:
             d = """<div id="testset" class="{}">""".format(cssClass)
         else:
@@ -87,8 +100,9 @@ class TestSet(TestPlan, Runnable):
                 self.setup.toHtml(), sStatus)
         c = "<tr><td>Cleanup</td><td>{}</td><td>{}</td></tr></table>".format(
                 self.cleanup.toHtml(), cStatus)
-        cfgs = reduce(self.__join, [cfg.toHtml(True) for cfg in self.configs])
-        return "\n".join((d, h, p, s, c, cfgs,"</div>"))
+        cases = reduce(self.__join, 
+                       [case.toHtml(True) for case in self.testcases])
+        return "\n".join((d, h, p, s, c, cases,"</div>"))
 
     def _longHtml(self, cssClass):       
         if cssClass:
@@ -100,8 +114,9 @@ class TestSet(TestPlan, Runnable):
                 self.testplan)
         s = "<p>Setup: {}</p>".format(self.setup.toHtml(short=False))
         c = "<p>Cleanup: {}</p>".format(self.cleanup.toHtml(short=False))
-        cfgs = reduce(self.__join, [cfg.toHtml(False) for cfg in self.configs]) 
-        return "\n".join((d, p, h, s, c, cfgs,"</div>"))
+        cases = reduce(self.__join,
+                      [case.toHtml(False) for case in self.testcases])
+        return "\n".join((d, p, h, s, c, cases,"</div>"))
         
     def __join(self, s1, s2):
         return "\n".join((s1, s2))
@@ -124,15 +139,15 @@ class TestSet(TestPlan, Runnable):
         # execute setup actions    
         failed = self._executeSetup(text, indent_lvl, **kwargs)
         # execute cases
-        for cfg in self.configs:
+        for case in self.testcases:
             if not failed: 
-                text.write("\n  >>> Executing configuration: '{}'".format(
-                                                                     cfg.name))
-                output = cfg.execute(**kwargs)
+                text.write("\n  >>> Executing test case: '{}'".format(
+                                                                     case.name))
+                output = case.execute(**kwargs)
                 text.write("  ### OUTPUT ###\n{}\n### END ###\n".format(output))
             else:
                 text.write("\n  >>> Configuration '{}' SKIPPED)\n".format(
-                                                                     cfg.name))
+                                                                     case.name))
         # execute cleanup actions    
         self._executeCleanup(text, indent_lvl, failed, **kwargs)
         text.write("{}\n".format("#"*79))
@@ -148,9 +163,10 @@ class _TestSetJsonEncoder(json.JSONEncoder):
             d = dict()
             d["name"] = obj.name
             d["testplan"] = obj.testplan
+            d["SUT"] = obj.systemUnderTest.toJson()
             d["setup"] = obj.setup.toJson()
             d["cleanup"] = obj.cleanup.toJson()
-            d["configurations"] = [i.toJson() for i in obj.configs]
+            d["cases"] = [i.toJson() for i in obj.testcases]
             return d
         return json.JSONEncoder.default(self, obj)
 
@@ -163,23 +179,25 @@ class TestSetJsonDecoder(json.JSONDecoder):
         name = "Untitled Test Set"
         setup = []
         cleanup = []
-        cfgs = None
+        cases = None
         testplan = "Unknown test plan"
         if "name" in tsDict:
             name = tsDict["name"]
         if "testplan" in tsDict:
             testplan = tsDict["testplan"]
+        if "SUT" in tsDict:
+            sut = SutJsonDecoder().decode(tsDict["SUT"])
         if "setup" in tsDict:
             setup = ActionJsonDecoder().decode(tsDict["setup"]) 
         if "cleanup" in tsDict:
             cleanup = ActionJsonDecoder().decode(tsDict["cleanup"]) 
-        if "configurations" in tsDict:
-            cfgs=[]
-            for c in tsDict["configurations"]:
-                cfgs.append(ConfigJsonDecoder().decode(c)) 
+        if "cases" in tsDict:
+            cases=[]
+            for c in tsDict["cases"]:
+                cases.append(TestCaseJsonDecoder().decode(c)) 
         assert testplan is not None
-        assert cfgs is not None, "Test Set needs a configuration or two..."
-        return TestSet(name, testplan, setup, cleanup, cfgs)
+        assert cases is not None, "Test Set needs a configuration or two..."
+        return TestSet(name, testplan, setup, cleanup, cases)
         
 # TESTING ####################################################################
 FILENAME = "test/testset.json"
@@ -189,24 +207,14 @@ def runtests():
     ts = TestSet("a testset", "an example test plan")
     print(str(ts))
     # add some setup and cleanup actions
-    a1 = ScriptedAction("test/scripts/test.py", "arg1")
-    a2 = ScriptedAction("test/scripts/hello.jar", "arg1 arg2")
-    a3 = ScriptedAction("/this/is/invalid/script/path")
+    a1 = AutomatedAction("test/scripts/test.py", "arg1")
+    a2 = AutomatedAction("test/scripts/hello.jar", "arg1 arg2")
+    a3 = AutomatedAction("/this/is/invalid/script/path")
     ts.setup = a1
     ts.cleanup = a2
     # SUT
     _sut = SystemUnderTest("SUT-name", suttype=1, ip="129.234.23.233",
             version="1.0", description="A short description")
-    # add some test cfgs
-    cfg1 = Configuration("the first cfg", sut=_sut)
-    cfg2 = Configuration("the second cfg", sut=_sut)
-    cfg3 = Configuration("the third cfg")
-    ts.addConfig(cfg1)
-    ts.addConfig(cfg2)
-    ts.addConfig(cfg3)
-    # add some setup and cleanup actions
-    cfg1.setup = a1
-    cfg3.cleanup = a2
     # add some test steps
     s1 = TestStep("the first step")
     s1.action = a1
@@ -232,13 +240,12 @@ def runtests():
     c2.addStep(s1)
     c3.addStep(s3)
     #
-    cfg1.addTestCase(c1)
-    cfg1.addTestCase(c2)
-    cfg1.addTestCase(c3)
-    cfg2.addTestCase(c3)
-    cfg2.addTestCase(c2)
-    cfg2.addTestCase(c1)
-    cfg3.addTestCase(c1)
+    ts.addTestCase(c1)
+    ts.addTestCase(c2)
+    ts.addTestCase(c3)
+    ts.addTestCase(c3)
+    ts.addTestCase(c2)
+    ts.addTestCase(c1)
     print(str(ts))
     print()
     j = ts.toJson()
@@ -261,9 +268,8 @@ def runtests():
     print("Stop.")
 
 if __name__ == '__main__':
-    from action import ScriptedAction, NoOpAction 
+    from action import AutomatedAction, NoOpAction 
     from action import ManualAction
-    from configuration import Configuration
     from sut import SystemUnderTest
     from testcase import TestCase
     from teststep import TestStep

@@ -17,30 +17,26 @@ __version__ = "0.0.1"
 _author__ = "Miran R."
 
 import json
+from enum import enum
 
-class SutType(object):
-    UNKNOWN = -1
-    HARDWARE = 0
-    SOFTWARE = 1
-    valid = [UNKNOWN, HARDWARE, SOFTWARE]
 
-    @staticmethod
-    def convert(strVal):
-        """ """
-        strVal = strVal.lower().strip()
-        val = SutType.UNKNOWN
-        if strVal in ["hardware", "hw"]:
-            val = SutType.HARDWARE
-        elif strVal in ["software", "sw"]: 
-            val = SutType.SOFTWARE
-        return val
+SUTType = enum(["UNKNOWN", "HARDWARE", "SOFTWARE", "BOTH"])
+
+def toSUTType(str_val):
+    str_val = str_val.lower()
+    if str_val in ["hw", "hardware"]:
+        return SUTType.HARDWARE
+    elif str_val in ["sw", "software"]:
+        return SUTType.SOFTWARE
+    else:
+        return SUTType.UNKNOWN
 
 class SystemUnderTest(object):
     """
         SystemUnderTest -
     """
 
-    def __init__(self, name, suttype=SutType.UNKNOWN, version=None,
+    def __init__(self, name, suttype=SUTType.UNKNOWN, version=None,
                              ip="0.0.0.0", description=""):
         self._name = name
         self._type = suttype
@@ -78,14 +74,15 @@ class SystemUnderTest(object):
         return self._description
 
     def typeToString(self):
-        if self.suttype == SutType.UNKNOWN:
+        if self.suttype == SUTType.UNKNOWN:
             return "unknown"
-        elif self.suttype == SutType.HARDWARE:
+        elif self.suttype == SUTType.HARDWARE:
             return "hardware"
-        elif self.suttype == SutType.SOFTWARE:
+        elif self.suttype == SUTType.SOFTWARE:
             return "software"
         else:
             return "test object value error"
+
     def toJson(self):
         return json.dumps(self, indent=4, cls=_SutJsonEncoder)
 
@@ -138,13 +135,13 @@ class SutJsonDecoder(json.JSONDecoder):
         name = "Untitled SUT"
         version = "x.y"
         ip = "0.0.0.0"
-        suttype = SutType.UNKNOWN
+        suttype = SUTType.UNKNOWN
         desc = ""
         #
         if "name" in sutDict:
             name = sutDict["name"]
         if "type" in sutDict:
-            sutType = SutType.convert(sutDict["type"])
+            suttype = toSUTType(sutDict["type"])
         if "ip" in sutDict:
             ip = sutDict["ip"]
         if "version" in sutDict:
@@ -156,7 +153,7 @@ class SutJsonDecoder(json.JSONDecoder):
  # TESTING ####################################################################
 def runtests():
     print("Starting unit tests...")
-    to = SystemUnderTest("a test object", SutType.HARDWARE, "1.0",
+    to = SystemUnderTest("a system under test", SUTType.HARDWARE, "1.0",
                          "192.168.1.2", "This is a description")
     print(str(to))
     j = to.toJson()

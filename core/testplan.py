@@ -7,22 +7,23 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Apr11   MR # This is just an example hot to write history notes
+# 0.0.1     Apr11   MR # initial version
+# 0.0.2     Jan12   MR # simplification: Configurations are no-more; test plan
+#                        carries the list of test cases
 #                       
 ##############################################################################
 from __future__ import print_function
 
 __description__ = "TestPlan class implementation"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __author__ = "Miran R."
 
 import json
 import StringIO
 from testable import _Testable
-from action import ScriptedAction, NoOpAction, ManualAction, ActionJsonDecoder
-from configuration import Configuration, ConfigJsonDecoder
-from sut import SystemUnderTest
-from testcase import TestCase
+from action import AutomatedAction, NoOpAction, ManualAction, ActionJsonDecoder
+from sut import SystemUnderTest, SutJsonDecoder
+from testcase import TestCase, TestCaseJsonDecoder
 from teststep import TestStep
 
 class TestPlan(_Testable):
@@ -30,26 +31,31 @@ class TestPlan(_Testable):
         TestPlan -
     """
 
-    def __init__(self, name, setup=None, cleanup=None, configs=None):
+    def __init__(self, name, setup=None, cleanup=None, cases=None, sut=None):
         assert name is not None
         super(TestPlan, self).__init__(name, setup, cleanup)
-        self._cfgs = configs if configs is not None else []
+        self._cases = cases if cases is not None else []
+        self._sut = sut if sut is not None else SystemUnderTest("empty SUT")
 
     def __str__(self):
         s = "\n".join(("test plan: {}". format(self.name),
                        "  setup={}".format(str(self.setup)),
                        "  cleanup={}".format(str(self.cleanup)),
-                       "  configs={}".format([str(s) for s in self.configs]),
+                       "  cases={}".format([str(s) for s in self.testcases]),
                        ))
         return s
 
     @property
-    def configs(self):
-        return self._cfgs
+    def testcases(self):
+        return self._cases
 
-    def addConfig(self, case):
-        assert isinstance(case, Configuration)
-        self._cfgs.append(case)
+    @property
+    def systemUnderTest(self):
+        return self._sut
+
+    def addTestCase(self, case):
+        assert isinstance(case, TestCase)
+        self._cases.append(case)
 
     def toJson(self):
         """ """
@@ -61,12 +67,13 @@ class TestPlan(_Testable):
 
     def toXml(self):
         """ """
+        sut = self.systemUnderTest.toXml()
         n = """<TestPlan name="{}">""".format(self.name)
         s = "<Setup>\n{}</Setup>".format(self.setup.toXml())
         c = "<Cleanup>\n{}</Cleanup>".format(self.cleanup.toXml())
-        cfgs = reduce(lambda x,y: "\n".join((x, y)),
-                  [cfg.toXml() for cfg in self.configs])
-        return "\n".join((n, s, c, cfgs, "</TestPlan>\n")) 
+        cases = reduce(lambda x,y: "\n".join((x, y)),
+                  [case.toXml() for case in self.testcases])
+        return "\n".join((n, sut, s, c, cases, "</TestPlan>\n")) 
 
     def writeJson(self, filename):
         """ """
@@ -82,9 +89,10 @@ class _TestPlanJsonEncoder(json.JSONEncoder):
         if isinstance(obj, TestPlan):
             d = dict()
             d["name"] = obj.name
+            d["SUT"] = obj.systemUnderTest.toJson()
             d["setup"] = obj.setup.toJson()
             d["cleanup"] = obj.cleanup.toJson()
-            d["configurations"] = [i.toJson() for i in obj.configs]
+            d["testcases"] = [i.toJson() for i in obj.testcases]
             return d
         return json.JSONEncoder.default(self, obj)
 
@@ -97,19 +105,21 @@ class TestPlanJsonDecoder(json.JSONDecoder):
         name = "Untitled Test Plan"
         setup = []
         cleanup = []
-        cfgs = None
+        cases = None
         if "name" in tsDict:
             name = tsDict["name"]
         if "setup" in tsDict:
             setup = ActionJsonDecoder().decode(tsDict["setup"]) 
         if "cleanup" in tsDict:
             cleanup = ActionJsonDecoder().decode(tsDict["cleanup"]) 
-        if "configurations" in tsDict:
-            cfgs=[]
-            for c in tsDict["configurations"]:
-                cfgs.append(ConfigJsonDecoder().decode(c)) 
-        assert cfgs is not None, "Test plan needs a configuration or two..."
-        return TestPlan(name, setup, cleanup, cfgs)
+        if "SUT" in tsDict:
+            sut = SutJsonDecoder().decode(tsDict["SUT"])
+        if "testcases" in tsDict:
+            cases=[]
+            for c in tsDict["testcases"]:
+                cases.append(TestCaseJsonDecoder().decode(c)) 
+        assert cases is not None, "Test plan needs a test case or two..."
+        return TestPlan(name, setup, cleanup, cases)
         
 # TESTING ####################################################################
 FILENAME = "test/testset.json"
@@ -121,29 +131,12 @@ def runtests():
     print(ts.toJson())
     print()
     # add some setup and cleanup actions
-    a1 = ScriptedAction("/this/is/a/script/path", "arg1")
-    a2 = ScriptedAction("/this/is/a/different/script/path", "arg1 arg2")
+    a1 = AutomatedAction("/this/is/a/script/path", "arg1")
+    a2 = AutomatedAction("/this/is/a/different/script/path", "arg1 arg2")
     ts.setup = a1
     ts.cleanup = a2
     print(str(ts))
     print()
-    # add some configurations
-    # add SUT
-    _sut = SystemUnderTest("SUT-name", suttype=1, ip="129.234.23.233",
-            version="1.0", description="A short description")
-    cfg1 = Configuration("the first cfg", sut=_sut)
-    cfg2 = Configuration("the second cfg", sut=_sut)
-    cfg3 = Configuration("the third cfg")
-    ts.addConfig(cfg1)
-    ts.addConfig(cfg2)
-    ts.addConfig(cfg3)
-    print(str(ts))
-    print()
-    # add some setup and cleanup actions
-    cfg1.setup = a1
-    cfg1.cleanup = a2
-    cfg2.setup = a1
-    cfg3.cleanup = a2
     # add some test steps
     s1 = TestStep("the first step")
     s2 = TestStep("the second step")
@@ -166,15 +159,15 @@ def runtests():
     c2.addStep(s1)
     c3.addStep(s3)
     #
-    cfg1.addTestCase(c1)
-    cfg1.addTestCase(c2)
-    cfg1.addTestCase(c3)
-    cfg2.addTestCase(c3)
-    cfg2.addTestCase(c2)
-    cfg2.addTestCase(c1)
-    cfg3.addTestCase(c2)
-    cfg3.addTestCase(c1)
-    cfg3.addTestCase(c3)
+    ts.addTestCase(c1)
+    ts.addTestCase(c2)
+    ts.addTestCase(c3)
+    ts.addTestCase(c3)
+    ts.addTestCase(c2)
+    ts.addTestCase(c1)
+    ts.addTestCase(c2)
+    ts.addTestCase(c1)
+    ts.addTestCase(c3)
     print(str(ts))
     print()
     j = ts.toJson()

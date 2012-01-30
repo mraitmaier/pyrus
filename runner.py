@@ -1,5 +1,5 @@
 """
-   runer.py - 
+   runner.py - 
 
    NOTE: this module should not be run as a standalone scripts, excepts for
    built-in tests.
@@ -7,11 +7,13 @@
 # HISTORY ####################################################################
 #
 #   0.0.1   Jun11   MR  Initial version of the file
+#   0.0.2   Jan12   MR  Some simplification and bug-fixes (setup & cleanup
+#                       actions were executed twice!)
 ##############################################################################
 from __future__ import print_function
 
 __description__ = "Pyrus test runner application"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __author__ = "Miran R."
 
 import sys

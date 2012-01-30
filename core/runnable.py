@@ -38,48 +38,52 @@ class Runnable(object):
         raise NotImplementedError
 
     def _executeSetup(self, text, indent_lvl, **kwargs):
-        """Executes the setup action list. 
-        It can be used for all _Containers."""
+        """Executes the setup action list. """
         assert text is not None
         failed = False
         # indent string: string are right-aligned, space-padded, depend on
         # indent level
         indented = "{:>}".format(" "*(2*indent_lvl))
         # execute setup action
-        #print(">>> Executing setup action: '{}'\n".format(str(a)))
-        text.write("\n{}>>> Executing setup action: '{}'\n".format(
+        if self.setup.isAutomated():
+            #print(">>> Executing setup action: '{}'\n".format(str(a)))
+            text.write("\n{}>>> Executing setup action: '{}'\n".format(
                                                 indented, str(self.setup)))
-        self.setup.execute(**kwargs)
-        text.write("{}### RC='{}'\n".format(indented, self.setup.returncode))
-        text.write("{0}### OUTPUT ###\n{1}\n{0}### END ###\n".format(
+            self.setup.execute(**kwargs)
+            text.write("{}### RC='{}'\n".format(indented,self.setup.returncode))
+            text.write("{0}### OUTPUT ###\n{1}\n{0}### END ###\n".format(
                                                 indented, self.setup.output))
-        # if any setup action fails, interrupt execution of the
-        # configuration, there's no point to continue
-        if self.setup.returncode == TestStatus.FAIL:
-            text.write("{}ERROR: The '{}' setup action failed.\n".format(
+            # if any setup action fails, interrupt execution of the
+            # configuration, there's no point to continue
+            if self.setup.returncode == TestStatus.FAIL:
+                text.write("{}ERROR: The '{}' setup action failed.\n".format(
                                                 indented, str(self.setup)))
-            text.write("{}The '{}' execution STOPPED.\n".format(
+                text.write("{}The '{}' execution STOPPED.\n".format(
                                                           indented, self.name))
-            failed = True
+                failed = True
+        else:
+            text.write("\n{}>>> No setup action\n".format(indented))
         return failed
 
     def _executeCleanup(self, text, indent_lvl, failed, **kwargs):
-        """Executes the cleanup action list.
-        It can be used for all _Containers."""
+        """Executes the cleanup action list."""
         assert text is not None
         assert failed in [True, False]
         # create an indentation string for messages
         indented = "{:>}".format(" "*(2*indent_lvl))
         # execute cleanup actions
-        if not failed:
-            text.write("\n{}>>> Executing cleanup action: '{}'\n".format(
+        if self.cleanup.isAutomated():
+            if not failed:
+                text.write("\n{}>>> Executing cleanup action: '{}'\n".format(
                                                   indented, str(self.cleanup)))
-            self.cleanup.execute(**kwargs)
-            text.write("{}### RC='{}'\n".format(indented, 
+                self.cleanup.execute(**kwargs)
+                text.write("{}### RC='{}'\n".format(indented, 
                                                       self.cleanup.returncode))
-            text.write("{0}### OUTPUT ###\n{1}\n{0}### END ###\n".format(
+                text.write("{0}### OUTPUT ###\n{1}\n{0}### END ###\n".format(
                                     indented, self.cleanup.output))
-        else:
-            text.write("{}>>> cleanup action: '{}' SKIPPED\n".format(
+            else:
+                text.write("{}>>> cleanup action: '{}' SKIPPED\n".format(
                                              indented, str(self.cleanup)))
+        else:
+            text.write("\n{}>>> No cleanup action.\n".format(indented))
 

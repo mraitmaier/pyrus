@@ -50,13 +50,15 @@ REPORT_TYPE_HTML = 2
 #REPORT_TYPE_JSON = 3
 #REPORT_TYPE_TEXT = 4
 
-def ReporterFactory(name):
+def ReporterFactory(name, started, finished):
     """Factory function that returns the appropriate type of reporter."""
     p, ext = os.path.splitext(name)
     if ext == ".xml":
-        return XmlReporter(name)
+        return XmlReporter(name, started, finished)
     elif ext in [".htm", ".html"]:
-       return HtmlReporter(name)
+       return HtmlReporter(name, started, finished)
+    elif ext == ".json":
+        return JsonReporter(name, started, finished)
     else:
         raise Error("Invalid report file type '{}'".format(ext))
 
@@ -65,9 +67,11 @@ class _Reporter(object):
         _Reporter - abstract class implementing any kind of report generator 
     """
 
-    def __init__(self, path):
+    def __init__(self, path, started, finished):
         """Ctor"""
         self.__path = path               # path where report to be written
+        self.__started = started
+        self.__finished = finished
 
     @property
     def path(self):
@@ -82,26 +86,35 @@ class _Reporter(object):
         (p, f) = os.path.split(val)
         if not os.path.exists(p):
             os.makedirs(p)
+    @property
+    def started(self):
+        """ """
+        return self.__started
+
+    @property
+    def finished(self):
+        """ """
+        return self.__finished
 
     def write(self):
         raise NotImplementedError
   
-#class JsonReporter(_Reporter):
-#    """
-#        JsonReporter - JSON report generator
-#    """
-#
-#    def __init__(self, reportpath):
-#        """ Ctor"""
-#        assert reportpath is not None
-#        super(JsonReporter, self).__init__(reportpath)
-#
-#    def write(self, obj):
-#        """ """
-#        assert testset is not None
-#        fout = codecs.open(self.Path, "w", "utf8")
-#        fout.write(obj.toJson())
-#        fout.close()
+class JsonReporter(_Reporter):
+    """
+        JsonReporter - JSON report generator
+    """
+
+    def __init__(self, reportpath, started, finished):
+        """ Ctor"""
+        assert reportpath is not None
+        super(JsonReporter, self).__init__(reportpath, started, finished)
+
+    def write(self, obj, include=None):
+        """ """
+        assert obj is not None
+        fout = codecs.open(self.path, "w", "utf8")
+        fout.write(obj.toJson())
+        fout.close()
 
 #class TextReporter(_Reporter):
 #    """
@@ -124,10 +137,10 @@ class HtmlReporter(_Reporter):
     """ 
         HtmlReporter - HTML report generator
     """
-    def __init__(self, reportpath, cssfile=None):
+    def __init__(self, reportpath, started, finished,cssfile=None):
         """Ctor"""
         assert reportpath is not None
-        super(HtmlReporter, self).__init__(reportpath)
+        super(HtmlReporter, self).__init__(reportpath, started, finished)
 
     def write(self, obj, cssFile=None):
         assert obj is not None
@@ -147,6 +160,10 @@ class HtmlReporter(_Reporter):
         fout.write("</header>\n")
         fout.write("<body>\n")
         fout.write("%s\n" % obj.toHtml())
+        fout.write("<div>\n")
+        fout.write("<b>Execution started:</b> {}\n".format(self.started))
+        fout.write("<b>Execution finished:</b> {}\n".format(self.finished))
+        fout.write("</div>\n")
         fout.write("</body>\n")
         fout.write("</html>\n")
         fout.close()
@@ -156,11 +173,11 @@ class XmlReporter(_Reporter):
         XmlReporter -
     """
 
-    def __init__(self, reportpath, xsltfile=None):
+    def __init__(self, reportpath, started, finished, xsltfile=None):
         """Ctor"""
-        super(XmlReporter, self).__init__(reportpath)
+        super(XmlReporter, self).__init__(reportpath, started, finished)
         self.__xsltfile = xsltfile # XSL transformation file path
-        self._started = False      # flag indicating doc has been started
+        self._start = False      # flag indicating doc has been started
 
     def __str__(self):
         s = NEWLINE.join(("XmlReporter class instance:",
@@ -208,6 +225,8 @@ class XmlReporter(_Reporter):
             copy(self.xsltFile, os.path.join(p, xsltfile))
         # write the XML report
         fout.write(obj.toXml())
+        fout.write("<Started>{}</Started>".format(self.started))
+        fout.write("<Finished>{}</Finished>".format(self.finished))
         fout.close()
 
 ############## testing part ##################
@@ -217,7 +236,7 @@ def testXml():
     testset = "../cfg/example_ts.xml"
     col = Collector(testset)
     ts = col.testset
-    rpt = XmlReporter("d:/test/report.xml")
+    rpt = XmlReporter("d:/test/report.xml", "started", "finished")
     rpt.write(ts)
 def testHtml():
     testset = "../cfg/example_ts.xml"
@@ -225,7 +244,7 @@ def testHtml():
     ts = col.testset
     #col.display()
     #print ts.toHtml()
-    rpt = HtmlReporter("d:/test/htmlreport.html")
+    rpt = HtmlReporter("d:/test/htmlreport.html", "started", "finished")
     rpt.write(ts)
 
 if __name__ == "__main__":

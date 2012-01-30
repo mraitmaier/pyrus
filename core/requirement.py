@@ -17,63 +17,49 @@ __version__ = "0.0.1"
 _author__ = "Miran R."
 
 import json
-from priority import Priority
+from priority import Priority, toPriority
+from enum import enum
 
-class RequirementStatus(object):
-    """
-    """
-    ERROR = -1
-    NEW = 0
-    ACKNOWLEDGED = 1
-    PENDING = 2
-    APPROVED = 3
-    REJECTED = 4
-    UNKNOWN = 5
+RequirementStatus = enum(("NEW", "ACKNOWLEDGED", "PENDING", "APPROVED",
+                          "REJECTED", "UNKNOWN", "ERROR"))
 
-    def __init__(self, val=NEW):
-        self._val = val
+def toRequirementStatus(strval):
+    """ """
+    strval = strval.upper()
+    if strval in ["NEW", "N"]:
+        return RequirementStatus.NEW
+    elif strval in ["ACKNOWLEDGED", "ACK"]:
+        return RequirementStatus.ACKNOWLEDGED
+    elif strval in ["PENDING", "PEN"]:
+        return RequirementStatus.PENDING
+    elif strval in ["APPROVED", "APR"]:
+        return RequirementStatus.APPROVED
+    elif strval in ["REJECTED", "REJ"]:
+        return RequirementStatus.REJECTED
+    elif strval in ["UNKNOWN", "UNK"]:
+        return RequirementStatus.UNKNOWN
+    else:
+        return RequirementStatus.ERROR
 
-    def __str__(self):
-        if self._val == self.NEW:
-            return "new"
-        elif self._val == self.ACKNOWLEDGED:
-            return "acknowledged"
-        elif self._val ==  self.PENDING:
-            return "pending"
-        elif self._val ==   self.APPROVED:
-            return "approved"
-        elif self._val ==   self.REJECTED:
-            return "rejected"
-        elif self._val ==   self.UNKNOWN:
-            return "unknown"
-        else:
-            return "error"
-       
-class TestableStatus(object):
-    """
-    """
-    ERROR = -1
-    VALID = 0
-    NOT_TESTABLE = 1
-    
-    @staticmethod
-    def strToVal(strVal):
-        assert isinstance(strVal, (str, unicode)), "Must be string...."
-        assert strVal is not None
-        strVal = strVal.lower().strip()
-        if strVal == "valid":
-            return TestableStatus.VALID
-        elif strVal in ["not testable", "not_testable", "not_test"]:
-            return TestableStatus.NOT_TESTABLE
-        else:
-            return TestableStatus.ERROR
+      
+TestableStatus = enum(("VALID", "NOT_TESTABLE", "ERROR"))
+
+def toTestableStatus(strval):
+    """ """
+    strval = strval.upper()
+    if strval in ["VALID", "VAL"]:
+        return TestableStatus.VALID
+    elif strval in ["NOT_TESTABLE", "NOT"]:
+        return TestableStatus.NOT_TESTABLE
+    else:
+        return TestableStatus.ERROR
 
 class Requirement(object):
     """ 
         Requirement
     """
     def __init__(self, name, short="", description="",
-                             status=RequirementStatus(RequirementStatus.NEW),
+                             status=RequirementStatus.NEW,
                              test_status=TestableStatus.VALID, 
                              priority=Priority.MEDIUM, changelog=""):
         assert name is not None
@@ -89,8 +75,8 @@ class Requirement(object):
         s = "\n".join(("Requirement: {}".format(self.name),
                        "  short: {}".format(self.shortName),
                        "  priority: {}".format(self.priority),
-                       "  status: {}".format(self.priority),
-                       "  teststatus: {}".format(self.testStatusToString()),
+                       "  status: {}".format(self.status),
+                       "  teststatus: {}".format(self.testStatus),
                        "  description:\n{}".format(self.description),
                        "  changelog:\n{}".format(self.changelog)
                        ))
@@ -124,14 +110,6 @@ class Requirement(object):
     def changelog(self):
         return self._changelog
 
-    def testStatusToString(self):
-        """ """
-        if self.testStatus == TestableStatus.VALID:
-            return "valid"
-        elif self.testStatus == TestableStatus.NOT_TESTABLE:
-            return "not testable"
-        else:
-            return "error"
     def toJson(self):
         return json.dumps(self, indent=4, cls=_RequirementJsonEncoder)
 
@@ -144,8 +122,8 @@ class _RequirementJsonEncoder(json.JSONEncoder):
             d["name"] = obj.name
             d["short"] = obj.shortName
             d["description"] = obj.description
-            d["priority"] = Priority.valToStr(obj.priority)
-            d["testStatus"] = obj.testStatusToString()
+            d["priority"] = obj.priority
+            d["testStatus"] = obj.testStatus
             d["reqStatus"] = str(obj.status)
             d["changelog"] = obj.changelog
             return d
@@ -154,24 +132,6 @@ class _RequirementJsonEncoder(json.JSONEncoder):
 class RequirementJsonDecoder(json.JSONDecoder):
     """Custom JSON decoder for Requirement class"""
        
-    def __statusToVal(self, strVal):
-        assert strVal is not None
-        strVal = strVal.lower().strip()
-        if strVal == "new":
-            return RequirementStatus.NEW
-        elif strVal == "unknown":
-            return RequirementStatus.UNKNOWN
-        elif strVal == "approved":
-            return RequirementStatus.APPROVED
-        elif strVal == "pending":
-            return RequirementStatus.PENDING
-        elif strVal == "acknowlwdged":
-            return RequirementStatus.ACKNOWLEDGED
-        elif strVal == "rejected":
-            return RequirementStatus.REJECTED
-        else:
-            return RequirementStatus.ERROR
-
     def decode(self, jsontext):
         d = json.loads(jsontext)
         #
@@ -189,11 +149,11 @@ class RequirementJsonDecoder(json.JSONDecoder):
         if "description" in d:
             desc = d["description"]
         if "priority" in d:
-            pri = Priority.strToVal(d["priority"])
+            pri = toPriority(d["priority"])
         if "status" in d:
-            status = self.__statusToVal(d["status"])
+            status = toRequirementStatus(d["status"])
         if "testStatus" in d:
-            tstatus = TestableStatus.strToVal(d["testStatus"])
+            tstatus = toTestableStatus(d["testStatus"])
         if "changelog" in d:
             log = d["changelog"]
         assert name is not None, "Requirement needs a name..."
@@ -209,38 +169,22 @@ def test_TestableStatus():
     print(str(s))
     s = TestableStatus.ERROR
     print(str(s))
-    st = {"valid":0, "VALID":0, " Valid    ":0, "NOT_TESTABLE":1, 
-          "not testable":1, "error":-1, "ERROR":-1, "someti":-1 }
-    for key, val in st.items():
-        print("Trying '{}'...".format(key))
-        res = TestableStatus.strToVal(key)
-        if res != val:
-            print("FAIL")
-            continue
-        print("PASS")
-    print("Trying invalid val: 666...")
-    try:
-        TestableStatus.strToVal(666)
-    except AssertionError:
-        print("Assertion caught: PASS")
-    else:
-        print("Assertion not caught: FAIL")
 
 def test_RequirementStatus():
     print("### RequirementStatus ###")
-    r = RequirementStatus(RequirementStatus.NEW)
+    r = RequirementStatus.NEW
     print(str(r))
-    r = RequirementStatus(RequirementStatus.ERROR)
+    r = RequirementStatus.ERROR
     print(str(r))
-    r = RequirementStatus(RequirementStatus.ACKNOWLEDGED)
+    r = RequirementStatus.ACKNOWLEDGED
     print(str(r))
-    r = RequirementStatus(RequirementStatus.PENDING)
+    r = RequirementStatus.PENDING
     print(str(r))
-    r = RequirementStatus(RequirementStatus.APPROVED)
+    r = RequirementStatus.APPROVED
     print(str(r))
-    r = RequirementStatus(RequirementStatus.UNKNOWN)
+    r = RequirementStatus.UNKNOWN
     print(str(r))
-    r = RequirementStatus(RequirementStatus.REJECTED)
+    r = RequirementStatus.REJECTED
     print(str(r))
 
 def test_Requirement():
@@ -250,6 +194,13 @@ def test_Requirement():
     j = r.toJson()
     print(j)
     blah = RequirementJsonDecoder().decode(j)
+    print(str(blah))
+    r2 = Requirement("A different Requirement name", "short", 
+            "A Different Requirement description", priority=Priority.HIGH)
+    print(str(r2))
+    j2 = r2.toJson()
+    print(j2)
+    blah = RequirementJsonDecoder().decode(j2)
     print(str(blah))
 
 def runtests():

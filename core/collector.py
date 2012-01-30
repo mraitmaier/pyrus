@@ -20,11 +20,11 @@ from error import Error
 from testset import TestSet, TestSetJsonDecoder
 from action import ActionJsonDecoder
 from xml.etree.ElementTree import parse
-from action import NoOpAction, ManualAction, ScriptedAction
+from action import NoOpAction, ManualAction, AutomatedAction
 from teststep import TestStep
 from testcase import TestCase
 from sut import SystemUnderTest
-from configuration import Configuration
+#from configuration import Configuration
 from testresult import TestStatus, TestResult
 
 JSON_EXT = ".json"
@@ -90,7 +90,7 @@ class Collector(object):
         name = root.get("name")
         testplan = "unknown test plan"
         children = root.getchildren()
-        configs = list()
+        cases = list()
         for child in children:
             if child.tag == "Setup":
                 setup = self.__xmlHandleAction(child)
@@ -98,9 +98,11 @@ class Collector(object):
                 cleanup = self.__xmlHandleAction(child)
             elif child.tag == "TestPlan":
                 testplan = child.text
-            elif child.tag == "Configuration":
-                configs.append(self.__xmlHandleConfig(child))
-        self._ts = TestSet(name, testplan, setup, cleanup, configs)
+            elif child.tag == "TestCase":
+                cases.append(self.__xmlHandleCase(child))
+            elif child.tag == "SystemUnderTest":
+                sut = self.__xmlHandleSut(child)
+        self._ts = TestSet(name, testplan, setup, cleanup, cases, sut)
 
     def __xmlHandleAction(self, elem):
         """ """
@@ -112,28 +114,10 @@ class Collector(object):
             script = xmlscr.text
             xmlargs = elem.find("Args").text
             args = xmlargs if xmlargs is not None else ""
-            action = ScriptedAction(script, args)    
+            action = AutomatedAction(script, args)    
 #        elif txt != "":
 #            action = ManualAction(txt)
         return action
-
-    def __xmlHandleConfig(self, elem):
-        """ """
-        assert elem is not None
-        name = elem.get("name")
-        cases = list()
-        children = elem.getchildren()
-        sut = SystemUnderTest("unknown")
-        for child in children:
-            if child.tag == "Setup":
-                setup = self.__xmlHandleAction(child)
-            elif child.tag == "Cleanup":
-                cleanup = self.__xmlHandleAction(child)
-            elif child.tag == "TestCase":
-                cases.append(self.__xmlHandleCase(child)) 
-            elif child.tag == "SystemUnderTest":
-                sut = self.__xmlHandleSut(child)
-        return Configuration(name, setup, cleanup, sut, cases)
 
     def __xmlHandleSut(self, elem):
         """ """

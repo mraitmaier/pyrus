@@ -23,7 +23,6 @@ from datetime import datetime
 #from time import sleep
 from pyrus.core.collector import Collector
 from pyrus.core.testset import TestSetJsonDecoder
-from pyrus.core.testrun import TestRun
 from pyrus.utils.iputils import check_ip
 from pyrus.core.testresult import TestStatus, TestResult
 from pyrus.core.error import Error
@@ -56,7 +55,7 @@ def fileStamp():
     return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 def _createDefLogName(tsname):
-    """ """
+    """default log name """
     return "_".join((tsname, fileStamp()))
 
 class Runner(object):
@@ -85,11 +84,13 @@ class Runner(object):
     def __init__(self, input, workdir, logfile=None, syslog=None, cssfile=None,
                                        xsltfile=None, debug=False):
         assert input is not None
-        self._testrun = None
+        self._testset = None
         self._log = None
         self._debug = debug
         self._css = cssfile
         self._xslt = xsltfile
+        self._started = ""  # execution started time flag
+        self._finished = "" # execution finished time flag
         self._init(input, workdir, logfile, syslog) # initialize data structs
 
     @property
@@ -98,7 +99,7 @@ class Runner(object):
 
     def __str__(self):
         s = "\n".join(("The Runner Object instance:",
-                       "\ttest set: {}".format(self._testrun.testset.name),
+                       "\ttest set: {}".format(self._testset.name),
                        "\tworking dir: {}".format(self._workdir),
                        "\tlogfile: {}".format(str(self._log)),
                        "\tCSS file: {}". format(str(self._css)),
@@ -117,7 +118,7 @@ class Runner(object):
                 print(ex)
                 print("Exiting...")
                 raise SystemExit(1)
-            self._testrun = TestRun(col.testset)
+            self._testset = col.testset
         else:
             print("Input configuration file not defined. Exiting...")
             raise SystemExit(1)
@@ -126,7 +127,7 @@ class Runner(object):
             self._workdir = workdir
         else:
             self._workdir = os.path.join(PYRUS_RESULTS_DIR, "_".join((
-                self._testrun.testset.name.replace(" ", "_"), fileStamp())))
+                self._testset.name.replace(" ", "_"), fileStamp())))
         if not os.path.exists(self._workdir):
             os.makedirs(self._workdir)
         # define path to logfile and create logfile itself
@@ -187,20 +188,23 @@ class Runner(object):
         """Execute a single test case"""
         self.log.warning("Starting test case: '{}'". format(tc.name))
         # execute setup script
-        self.log.warning("Executing setup action")
-        failed = self._runSetup(tc.setup, **kwargs)
-        if failed:
-            self.log.error(
+        if tc.setup.isAutomated():
+            self.log.warning("Executing setup action")
+            failed = self._runSetup(tc.setup, **kwargs)
+            if failed:
+                self.log.error(
                     "Setup action failed. There's no point to continue...")
-            tc.status.result = TestStatus.FAIL
-            self._cleanupCase(tc)
-            return 
-        else:
-            self.log.warning("Setup action exited with RC='{}'".format(
+                tc.status.result = TestStatus.FAIL
+                self._cleanupCase(tc)
+                return 
+            else:
+                self.log.warning("Setup action exited with RC='{}'".format(
                         tc.setup.returncode))
-            self.log.info(START_OUTPUT_STR)
-            self.log.info(tc.setup.output)
-            self.log.info(END_OUTPUT_STR)
+                self.log.info(START_OUTPUT_STR)
+                self.log.info(tc.setup.output)
+                self.log.info(END_OUTPUT_STR)
+        else:
+            self.log.info("No test case setup action to execute.")
         # execute a case
         status, output = tc.execute(**kwargs)
         self.log.warning("Test case status: {}".format(str(status)))
@@ -208,81 +212,59 @@ class Runner(object):
         self.log.info(output)
         self.log.info(END_OUTPUT_STR)
         # execute cleanup script
-        self.log.warning("Executing cleanup action")
-        tc.cleanup.execute(**kwargs)
-        self.log.warning("Cleanup action exited with RC='{}'".format(
+        if tc.cleanup.isAutomated():
+            self.log.warning("Executing cleanup action")
+            tc.cleanup.execute(**kwargs)
+            self.log.warning("Cleanup action exited with RC='{}'".format(
                         tc.cleanup.returncode))
-        self.log.info(START_OUTPUT_STR)
-        self.log.info(tc.cleanup.output)
-        self.log.info(END_OUTPUT_STR)
+            self.log.info(START_OUTPUT_STR)
+            self.log.info(tc.cleanup.output)
+            self.log.info(END_OUTPUT_STR)
+        else:
+            self.log.info("No test case cleanup action to execute.")
         # finish
         self.log.warning("Test Case '{}' finished.".format(tc.name))
         return True
 
-    def _runConfig(self, cfg, **kwargs):
-        """Execute a single configuration."""
-        self.log.warning("Starting configuration: '{}'".format(cfg.name))
-        self.log.info(str(cfg.systemUnderTest))
-        # execute setup script
-        self.log.warning("Executing setup action")
-        failed = self._runSetup(cfg.setup, **kwargs)
-        if failed:
-            self.log.error(
-                    "Setup action failed.There's no point to continue... ")
-            return 
-        else:
-            self.log.warning("Setup action exited with RC='{}'".format(
-                        cfg.setup.returncode))
-            self.log.info(START_OUTPUT_STR)
-            self.log.info(cfg.setup.output)
-            self.log.info(END_OUTPUT_STR)
-        # execute test cases
-        for tc in cfg.testcases:
-            self._runTestCase(tc, **kwargs)
-        # execute cleanup script
-        self.log.warning("Executing cleanup action")
-        cfg.cleanup.execute(**kwargs)
-        self.log.warning("Cleanup action exited with RC='{}'".format(
-                        cfg.cleanup.returncode))
-        self.log.info(START_OUTPUT_STR)
-        self.log.info(cfg.cleanup.output)
-        self.log.info(END_OUTPUT_STR)
-        # finish
-        self.log.warning("Configuration '{}' finished.".format(cfg.name))
-
     def run(self, **kwargs):
         """Run the tests."""
-        ts = self._testrun.testset # we need a test set to be run
+        ts = self._testset # we need a test set to be run
         start = now()
-        self._testrun.started = start
+        self._started = start
         self.log.warning("Starting Test Set: '{}'".format(ts.name))
         self.log.warning("Execution started at '{}'".format(start))
         # execute setup 
-        self.log.warning("Executing setup action")
-        failed = self._runSetup(ts.setup, **kwargs)
-        # if setup script fails, exit immediatelly
-        if failed:
-            self.log.error("Setup action failed.")
-            self.log.error("There's no point to continue. Exiting...")
-            self.__finish()
-            return
-        else:
-            self.log.warning("Setup action exited with RC='{}'".format(
+        if ts.setup.isAutomated():
+            self.log.warning("Executing setup action")
+            failed = self._runSetup(ts.setup, **kwargs)
+            # if setup script fails, exit immediatelly
+            if failed:
+                self.log.error("Setup action failed.")
+                self.log.error("There's no point to continue. Exiting...")
+                self.__finish()
+                return
+            else:
+                self.log.warning("Setup action exited with RC='{}'".format(
                         ts.setup.returncode))
-            self.log.info(START_OUTPUT_STR)
-            self.log.info(ts.setup.output)
-            self.log.info(END_OUTPUT_STR)
-        # exexute configurations
-        for cfg in ts.configs:
-            self._runConfig(cfg, **kwargs)
+                self.log.info(START_OUTPUT_STR)
+                self.log.info(ts.setup.output)
+                self.log.info(END_OUTPUT_STR)
+        else:
+            self.log.info("No test set setup action to execute.")
+        # exexute testcases
+        for cfg in ts.testcases:
+            self._runTestCase(cfg, **kwargs)
         # execute cleanup 
-        self.log.warning("Executing cleanup action")
-        ts.cleanup.execute(**kwargs)
-        self.log.warning("Cleanup action exited with RC='{}'".format(
+        if ts.cleanup.isAutomated():
+            self.log.warning("Executing cleanup action")
+            ts.cleanup.execute(**kwargs)
+            self.log.warning("Cleanup action exited with RC='{}'".format(
                         ts.cleanup.returncode))
-        self.log.info(START_OUTPUT_STR)
-        self.log.info(ts.cleanup.output)
-        self.log.info(END_OUTPUT_STR)
+            self.log.info(START_OUTPUT_STR)
+            self.log.info(ts.cleanup.output)
+            self.log.info(END_OUTPUT_STR)
+        else:
+            self.log.info("No test set cleanup action to execute.")
         # finish
         self.__finish()
 
@@ -290,9 +272,9 @@ class Runner(object):
         """Aux method that finishes the test set execution."""
         stop = now()
         self.log.warning("Test Set '{}' finished.".format(
-                    self._testrun.testset.name))
+                    self._testset.name))
         self.log.warning("Execution finished at {}.".format(stop))
-        self._testrun.finished = stop
+        self._finished = stop
 
     def createReport(self, name=None, include=None):   
         """Create and write a test run report.  
@@ -310,7 +292,7 @@ class Runner(object):
         # now create it 
         rep = None
         try:       
-            rep = ReporterFactory(fullname)
+            rep = ReporterFactory(fullname, self._started, self._finished)
         except Error as ex:
             self.log.error("Cannot write report file '{}'".format(fullname))
             self.log.error(ex)
@@ -323,7 +305,7 @@ class Runner(object):
                 include = self._xslt
         # and write it
         try:
-            rep.write(self._testrun, include)
+            rep.write(self._testset, include)
             self.log.warning("Report created.")
         except (Error, IOError) as ex:
             self.log.warning("Report NOT created.")

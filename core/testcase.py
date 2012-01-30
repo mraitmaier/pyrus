@@ -104,9 +104,13 @@ class TestCase(_Testable, Runnable):
 
     def toHtml(self, short=True, cssClass=None):
         """Convert the instance into HTML representation."""
-        sStatus = TestStatus.PASS if self.setup.returncode == 0 else \
+        sStatus = ""
+        cStatus = ""
+        if self.setup.isAutomated():
+            sStatus = TestStatus.PASS if self.setup.returncode == 0 else \
                 TestStatus.FAIL
-        cStatus = TestStatus.PASS if self.cleanup.returncode == 0 else \
+        if self.cleanup.isAutomated():
+            cStatus = TestStatus.PASS if self.cleanup.returncode == 0 else \
                 TestStatus.FAIL
         if short:
             return self._shortHtml(cssClass, sStatus, cStatus)

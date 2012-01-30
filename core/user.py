@@ -15,8 +15,12 @@ __version__ = "0.1"
 _author__ = "Miran R."
 
 import json
+from enum import enum
 
-def toRoleValue(strVal):
+# Role is an enum
+Role = enum(("GUEST", "USER", "TESTER", "DEVELOPER", "MANAGER", "ADMIN",
+             "UNKNOWN"))
+def toRole(strVal):
     """ """
     strVal = strVal.lower().strip()
     val = Role.GUEST
@@ -24,65 +28,17 @@ def toRoleValue(strVal):
         val = Role.USER
     elif strVal in ["admin", "administrator", "administrators"]:
         val = Role.ADMIN
-    return val
-
-def roleToString(val):
-    """ """
-    if val == Role.USER:
-        return "user"
-    elif val == Role.ADMIN:
-        return "administrator"
-    elif val == Role.GUEST:
-        return "guest"
-    else:
-        raise ValueError("Invalid user role value")
-
-class Role(object):
-    """
-        Role - class representing the possible user roles
-    """
-    USER = 0
-    GUEST = 1
-    TESTER = 2
-    DEVELOPER = 3
-    MANAGER = 4
-    ADMIN = 5
-    values = [USER, GUEST, TESTER, DEVELOPER, MANAGER, ADMIN]
-    
-    @staticmethod
-    def convert(strVal):
-        """Converts a string value into integer"""
-        strVal = strVal.lower().strip()
+    elif strVal in ["test", "tester"]:
+        val = Role.TESTER
+    elif strVal in ["dev", "develop", "developer"]:
+        val = Role.DEVELOPER
+    elif strVal in ["mgr", "manager"]:
+        val = Role.MANAGER
+    elif strVal == "guest":
         val = Role.GUEST
-        if strVal in ["user"]:
-            val = Role.USER
-        elif strVal in ["admin", "administrator", "administrators"]:
-            val = Role.ADMIN
-        elif strVal in ["tester"]:
-            val = Role.TESTER
-        elif strVal in ["developer"]:
-            val = Role.DEVELOPER
-        elif strVal in ["manager"]:
-            val = Role.MANAGER
-        return val
-
-    @staticmethod
-    def toString(val):
-        """ """
-        if val == Role.USER:
-            return "user"
-        elif val == Role.ADMIN:
-            return "admin"
-        elif val == Role.GUEST:
-            return "guest"
-        elif val == Role.TESTER:
-            return "tester"
-        elif val == Role.DEVELOPER:
-            return "developer"
-        elif val == Role.MANAGER:
-            return "manager"
-        else:
-            return "unknown role"
+    else:
+        val = Role.UNKNOWN
+    return val
 
 class User(object):
     """
@@ -93,7 +49,6 @@ class User(object):
                        fullname="", email="", role=Role.TESTER):
         assert username is not None
         assert password is not None
-        assert role in Role.values
         self._user = username
         self._pwd = password
         self._name = fullname
@@ -103,7 +58,7 @@ class User(object):
     def __str__(self):
         #return "{:>24}: {:>16}/{:>16} ({:32}) {:8}".format(self.fullname, 
         return "{}: {}/{} ({}) {}".format(self.fullname, self.username, 
-                          self.password, self.email, Role.toString(self.role))
+                          self.password, self.email, self.role)
 
     @property
     def username(self):
@@ -141,7 +96,7 @@ class _UserJsonEncoder(json.JSONEncoder):
             d["username"] = obj.username
             d["password"] = obj.password
             d["fullname"] = obj.fullname
-            d["role"]  = Role.toString(obj.role)
+            d["role"]  = obj.role
             d["email"] = obj.email
             return d
         return json.JSONEncoder(obj)
@@ -164,7 +119,7 @@ class UserJsonDecoder(json.JSONDecoder):
         if "fullname" in d:
             full = d["fullname"]
         if "role" in d:
-            atype = Role.convert(d["role"])
+            atype = toRole(d["role"])
         if "email" in d:
             email = d["email"]
         assert user is not None, "We need a username..."
@@ -181,6 +136,13 @@ def runtests():
     print(j)
     u1 = UserJsonDecoder().decode(j)
     print(str(u1))
+    u2 = User("mirko", "blahblah", "Miroslav Novak", "mnovak@eion.com",
+            Role.MANAGER)
+    print(str(u2))
+    j = u2.toJson()
+    print(j)
+    u3 = UserJsonDecoder().decode(j)
+    print(str(u3))
     print("Stop.")
 
 if __name__ == "__main__":

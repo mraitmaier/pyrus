@@ -14,7 +14,7 @@ __description__ = "Action clases implementation"
 __version__ = "0.0.1"
 __author__ = "Miran R."
 
-from testresult import TestResult, TestStatus
+from teststatus import TestStatus
 from exefactory import ExecutableFactory
 import StringIO
 import json
@@ -71,11 +71,6 @@ class NoOpAction(_Action):
     def toJson(self):
         return json.dumps(self, cls=_ActionJsonEncoder)
 
-    def execute(self, **kwargs):
-        """Execute the action and collect output text and return code.
-        Implemented only to satisfy 'Executable' interface"""
-        pass
-
 class ManualAction(_Action):
     """
         ManualAction - represents a list of manual actions
@@ -113,11 +108,6 @@ class ManualAction(_Action):
     def toHtml(self, **kwargs):
         # kwargs are for here compatibility with AutomatedAction and ignored
         return self.description
-
-    def execute(self, **kwargs):
-        """Execute the action and collect output text and return code.
-        Implemented only to satisfy 'Executable' interface"""
-        pass
 
 class AutomatedAction(_Action):
     """

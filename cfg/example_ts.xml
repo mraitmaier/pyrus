@@ -23,9 +23,11 @@
 
     <TestCase name="QAM64-3/4 1512 bytes">
             <Setup>
-                <Script>d:/test/test.py</Script><Args /> 
+                <Script>d:/test/invalid.py</Script><Args /> 
             </Setup>  
-            <Cleanup />
+            <Cleanup>
+                <Script>d:/test/invalid.py</Script><Args /> 
+            </Cleanup>
             <TestStep name="traffic 1512 bytes" expected="pass">
                 <Script>d:/test/test.pl</Script><Args /> 
             </TestStep>
@@ -52,4 +54,23 @@
                 <Script>d:/test/test.py</Script><Args>An argument </Args>
             </TestStep>
     </TestCase>
+
+    <TestCase name="The 4th case">
+            <Setup>
+                <Script>d:/test/test.py</Script><Args />
+            </Setup>
+            <Cleanup />
+            <TestStep name="traffic 68 bytes" expected="pass">
+                <Script>d:/test/invalid.py</Script><Args>An argument </Args>
+            </TestStep>
+    </TestCase>
+
+    <TestCase name="The 5th case">
+        <Setup />
+        <Cleanup />
+        <TestStep name="traffic 68 bytes" expected="pass">
+                <Script>d:/test/test.py</Script><Args>An argument </Args>
+        </TestStep>
+    </TestCase>
+ 
 </TestSet>

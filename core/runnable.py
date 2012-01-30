@@ -15,7 +15,7 @@ __version__ = "0.0.1"
 __author__ = "Miran R."
 
 import logging
-from testresult import TestResult, TestStatus
+from teststatus import TestStatus
 
 class Runnable(object):
     """Abstract base class for all containers"""
@@ -46,20 +46,17 @@ class Runnable(object):
         indented = "{:>}".format(" "*(2*indent_lvl))
         # execute setup action
         if self.setup.isAutomated():
-            #print(">>> Executing setup action: '{}'\n".format(str(a)))
             text.write("\n{}>>> Executing setup action: '{}'\n".format(
                                                 indented, str(self.setup)))
             self.setup.execute(**kwargs)
             text.write("{}### RC='{}'\n".format(indented,self.setup.returncode))
             text.write("{0}### OUTPUT ###\n{1}\n{0}### END ###\n".format(
                                                 indented, self.setup.output))
-            # if any setup action fails, interrupt execution of the
-            # configuration, there's no point to continue
-            if self.setup.returncode == TestStatus.FAIL:
+            # if setup action fails, interrupt the execution, 
+            # there's no point to continue
+            if self.setup.returncode != 0:
                 text.write("{}ERROR: The '{}' setup action failed.\n".format(
                                                 indented, str(self.setup)))
-                text.write("{}The '{}' execution STOPPED.\n".format(
-                                                          indented, self.name))
                 failed = True
         else:
             text.write("\n{}>>> No setup action\n".format(indented))
@@ -68,7 +65,7 @@ class Runnable(object):
     def _executeCleanup(self, text, indent_lvl, failed, **kwargs):
         """Executes the cleanup action list."""
         assert text is not None
-        assert failed in [True, False]
+        assert isinstance(failed, bool)
         # create an indentation string for messages
         indented = "{:>}".format(" "*(2*indent_lvl))
         # execute cleanup actions

@@ -24,8 +24,7 @@ from action import NoOpAction, ManualAction, AutomatedAction
 from teststep import TestStep
 from testcase import TestCase
 from sut import SystemUnderTest
-#from configuration import Configuration
-from testresult import TestStatus, TestResult
+from teststatus import TestStatus, toTestStatus
 
 JSON_EXT = ".json"
 XML_EXT = ".xml"
@@ -137,10 +136,10 @@ class Collector(object):
         """ """
         assert elem is not None
         name = elem.get("name")
-        expected = TestResult(TestStatus.PASS)
+        expected = TestStatus.PASS
         exp = elem.get("expected")
         if exp is not None: 
-            expected = TestResult(TestStatus.convert(exp)) 
+            expected = toTestStatus(exp) 
         children = elem.getchildren()
         desc = ""
         steps = list()
@@ -159,7 +158,7 @@ class Collector(object):
         """ """
         assert elem is not None    
         name = elem.get("name")
-        expected = TestResult(TestStatus.convert(elem.get("expected")))
+        expected = toTestStatus(elem.get("expected"))
         action = self.__xmlHandleAction(elem) 
         assert action is not None
         return TestStep(name, action, expected)

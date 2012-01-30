@@ -145,15 +145,27 @@ class TestCase(_Testable, Runnable):
 
     def _evaluate(self):
         """Self-evaluate the test case status."""
-        # FIXME: Is this OK?!
+        setup_status = TestStatus.NOT_TESTED # this is temp status for setup
+        cases_status = TestStatus.NOT_TESTED # this is temp status for cases
         self.status = TestStatus.NOT_TESTED   
-        if self.setup.returncode != 0:
-                self.status= TestStatus.FAIL
+        if self.setup.isAutomated():
+            # if setup action fails, the whole case fails
+            if self.setup.returncode != 0:
+                self.status = TestStatus.FAIL
                 return self.status
+            else:
+                setup_status = TestStatus.PASS
+        # evaluate steps
         for s in self.steps:
+            # for a case to pass, all steps must pass 
             if s.status != TestStatus.PASS:
                 self.status = TestStatus.FAIL
-                break
+                return self.status
+        cases_status = TestStatus.PASS
+        # the whole case passes only when...
+        if setup_status in [TestStatus.PASS, TestStatus.NOT_TESTED] and \
+            cases_status == TestStatus.PASS:
+            self.status = TestStatus.PASS
         return self.status
 
     def execute(self, **kwargs):
@@ -169,12 +181,12 @@ class TestCase(_Testable, Runnable):
             if not failed: 
                 txt.write("\n      >>> Executing test step: '{}'\n".format(
                                                                     step.name))
-                step.execute(**kwargs)
+                if step.action.isAutomated():
+                    step.execute(**kwargs)
             else:
                 step.action.output = \
-                      "\n      >>> Test Step '{}' SKIPPED)\n".format(step.name)
-                step.status = TestResult(TestStatus.NOT_TESTED)
-            txt.write("      ### STATUS='{}'\n".format(str(step.status)))
+                      "\n      >>> Test Step '{}' Skipped.\n".format(step.name)
+                step.status = TestStatus.NOT_TESTED
             txt.write("      ### OUTPUT ###\n{}\n      ### END ###\n".format(
                                                            step.action.output))
         # execute cleanup actions (only if setup section did not fail)   

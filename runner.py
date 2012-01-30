@@ -24,7 +24,7 @@ from datetime import datetime
 from pyrus.core.collector import Collector
 from pyrus.core.testset import TestSetJsonDecoder
 from pyrus.utils.iputils import check_ip
-from pyrus.core.testresult import TestStatus, TestResult
+from pyrus.core.teststatus import TestStatus
 from pyrus.core.error import Error
 from pyrus.core.reporter import ReporterFactory, HtmlReporter, XmlReporter
 
@@ -173,55 +173,20 @@ class Runner(object):
         assert setup is not None
         failed = False
         setup.execute(**kwargs)
-        if setup.returncode == TestStatus.FAIL:
+        if setup.returncode != 0:
             failed = True
         return failed
 
-    def _cleanupCase(self, case):
-        """Clean up statuses for steps and cleanup action when setup fails."""
-        assert case is not None
-        for step in case.steps:
-            step.status.result = TestStatus.NOT_TESTED
-        case.cleanup.status = TestStatus.NOT_TESTED
-        
     def _runTestCase(self, tc, **kwargs):
         """Execute a single test case"""
         self.log.warning("Starting test case: '{}'". format(tc.name))
-        # execute setup script
-        if tc.setup.isAutomated():
-            self.log.warning("Executing setup action")
-            failed = self._runSetup(tc.setup, **kwargs)
-            if failed:
-                self.log.error(
-                    "Setup action failed. There's no point to continue...")
-                tc.status.result = TestStatus.FAIL
-                self._cleanupCase(tc)
-                return 
-            else:
-                self.log.warning("Setup action exited with RC='{}'".format(
-                        tc.setup.returncode))
-                self.log.info(START_OUTPUT_STR)
-                self.log.info(tc.setup.output)
-                self.log.info(END_OUTPUT_STR)
-        else:
-            self.log.info("No test case setup action to execute.")
         # execute a case
+        self.log.warning("Executing test case: {}".format(tc.name))
         status, output = tc.execute(**kwargs)
-        self.log.warning("Test case status: {}".format(str(status)))
         self.log.info(START_OUTPUT_STR)
         self.log.info(output)
         self.log.info(END_OUTPUT_STR)
-        # execute cleanup script
-        if tc.cleanup.isAutomated():
-            self.log.warning("Executing cleanup action")
-            tc.cleanup.execute(**kwargs)
-            self.log.warning("Cleanup action exited with RC='{}'".format(
-                        tc.cleanup.returncode))
-            self.log.info(START_OUTPUT_STR)
-            self.log.info(tc.cleanup.output)
-            self.log.info(END_OUTPUT_STR)
-        else:
-            self.log.info("No test case cleanup action to execute.")
+        self.log.warning("Test case status: {}".format(status))
         # finish
         self.log.warning("Test Case '{}' finished.".format(tc.name))
         return True
@@ -233,9 +198,12 @@ class Runner(object):
         self._started = start
         self.log.warning("Starting Test Set: '{}'".format(ts.name))
         self.log.warning("Execution started at '{}'".format(start))
-        # execute setup 
+        # execute testset
+#        output = self._testset.execute()
+#        self.log.info(output)
+       # execute setup 
         if ts.setup.isAutomated():
-            self.log.warning("Executing setup action")
+            self.log.warning("Executing test set setup action")
             failed = self._runSetup(ts.setup, **kwargs)
             # if setup script fails, exit immediatelly
             if failed:
@@ -250,13 +218,13 @@ class Runner(object):
                 self.log.info(ts.setup.output)
                 self.log.info(END_OUTPUT_STR)
         else:
-            self.log.info("No test set setup action to execute.")
-        # exexute testcases
-        for cfg in ts.testcases:
-            self._runTestCase(cfg, **kwargs)
+            self.log.warning("No test set setup action to execute.")
+        # execute testcases
+        for tc in ts.testcases:
+            self._runTestCase(tc, **kwargs)
         # execute cleanup 
         if ts.cleanup.isAutomated():
-            self.log.warning("Executing cleanup action")
+            self.log.warning("Executing test set cleanup action")
             ts.cleanup.execute(**kwargs)
             self.log.warning("Cleanup action exited with RC='{}'".format(
                         ts.cleanup.returncode))
@@ -264,7 +232,7 @@ class Runner(object):
             self.log.info(ts.cleanup.output)
             self.log.info(END_OUTPUT_STR)
         else:
-            self.log.info("No test set cleanup action to execute.")
+            self.log.warning("No test set cleanup action to execute.")
         # finish
         self.__finish()
 

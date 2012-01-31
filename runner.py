@@ -200,25 +200,22 @@ class Runner(object):
         self._started = start
         self.log.warning("Starting Test Set: '{}'".format(ts.name))
         self.log.warning("Execution started at '{}'".format(start))
-        # execute testset
-#        output = self._testset.execute()
-#        self.log.info(output)
        # execute setup 
         if ts.setup.isAutomated():
             self.log.warning("Executing test set setup action")
-            failed = self._runSetup(ts.setup, **kwargs)
+            setup_failed = self._runSetup(ts.setup, **kwargs)
             # if setup script fails, exit immediatelly
-            if failed:
+            if setup_failed:
                 self.log.error("Setup action failed.")
                 self.log.error("There's no point to continue. Exiting...")
                 self.__finish()
                 return
             else:
-                self.log.warning("Setup action exited with RC='{}'".format(
-                        ts.setup.returncode))
                 self.log.info(START_OUTPUT_STR)
                 self.log.info(ts.setup.output)
                 self.log.info(END_OUTPUT_STR)
+                self.log.warning("Setup action exited with RC='{}'".format(
+                        ts.setup.returncode))
         else:
             self.log.warning("No test set setup action to execute.")
         # execute testcases
@@ -228,11 +225,11 @@ class Runner(object):
         if ts.cleanup.isAutomated():
             self.log.warning("Executing test set cleanup action")
             ts.cleanup.execute(**kwargs)
-            self.log.warning("Cleanup action exited with RC='{}'".format(
-                        ts.cleanup.returncode))
             self.log.info(START_OUTPUT_STR)
             self.log.info(ts.cleanup.output)
             self.log.info(END_OUTPUT_STR)
+            self.log.warning("Cleanup action exited with RC='{}'".format(
+                        ts.cleanup.returncode))
         else:
             self.log.warning("No test set cleanup action to execute.")
         # finish

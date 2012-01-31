@@ -145,9 +145,10 @@ class TestCase(_Testable, Runnable):
 
     def _evaluate(self):
         """Self-evaluate the test case status."""
-        setup_status = TestStatus.NOT_TESTED # this is temp status for setup
-        cases_status = TestStatus.NOT_TESTED # this is temp status for cases
         self.status = TestStatus.NOT_TESTED   
+        setup_status = TestStatus.NOT_TESTED   # this is temp status for setup
+        cases_status = TestStatus.NOT_TESTED   # this is temp status for cases
+        cleanup_status = TestStatus.NOT_TESTED # this temp status for cleanup
         if self.setup.isAutomated():
             # if setup action fails, the whole case fails
             if self.setup.returncode != 0:
@@ -155,6 +156,13 @@ class TestCase(_Testable, Runnable):
                 return self.status
             else:
                 setup_status = TestStatus.PASS
+        if self.cleanup.isAutomated():
+            # if cleanup action fails, the whole test case fails
+            if self.cleanup.returncode != 0:
+                self.status = TestStatus.FAIL
+                return self.status
+            else:
+                cleanup_status = TestStatus.PASS
         # evaluate steps
         for s in self.steps:
             # for a case to pass, all steps must pass 
@@ -164,6 +172,7 @@ class TestCase(_Testable, Runnable):
         cases_status = TestStatus.PASS
         # the whole case passes only when...
         if setup_status in [TestStatus.PASS, TestStatus.NOT_TESTED] and \
+           cleanup_status in [TestStatus.PASS, TestStatus.NOT_TESTED] and \
             cases_status == TestStatus.PASS:
             self.status = TestStatus.PASS
         return self.status

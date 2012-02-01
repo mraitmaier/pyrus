@@ -26,21 +26,15 @@ def now():
     """Generates formatted current timestamp: "YYYY/MM/DD HH:MM:SS"""
     return "%s" % datetime.now().strftime(_DATETIME_FORMAT)
 
-def fileStamp():
-    """Generates the formatted current timestamp for use in filenames"""
-    return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
 class TestReport(object):
     """ 
         TestReport -
     """
     def __init__(self, testset, started, finished):
         assert isinstance(testset, TestSet)
-#        assert isinstance(started, datetime)
-#        assert isinstance(finished, datetime)
         self._ts = testset
-        self._start = started.strftime(_DATETIME_FORMAT)
-        self._finish = finished.strftime(_DATETIME_FORMAT)
+        self._start = started
+        self._finish = finished
 
     def __str__(self):
         return "TestReport: test set '{}' executed from {} to {}.".format(
@@ -107,7 +101,7 @@ def runtests():
     print(">>> Starting tests...")
     print("now="+now())
     print("now="+str(datetime.now()))
-    tr = TestReport(ts, datetime.now(), datetime.now())
+    tr = TestReport(ts, now(), now())
     print("Started={}".format(tr.started))
     print("Finished={}".format(tr.finished))
     print(str(tr))
@@ -116,6 +110,8 @@ def runtests():
     bla = TestReportJsonDecoder().decode(j)
     print("typ {}, data='{}'".format(type(bla), str(bla)))
     print("XML={}".format(tr.toXml()))
+    print(">>>>>>>>>")
+    print(bla.__dict__)
     print(">>> Stop.")
 
 if __name__ == "__main__":

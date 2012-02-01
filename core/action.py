@@ -188,8 +188,8 @@ class AutomatedAction(_Action):
         """
         if "short" in kwargs:
             if not kwargs ["short"]:
-                status = str(TestResult(self.returncode))
-                a = "{} <b>{}</b><br>".format(str(self), status.upper()) 
+                status = self.returncode
+                a = "{} <b>{}</b><br>".format(str(self), status) 
                 if self.output != "":
                     o = "Output:<br>\n<pre>{}</pre>".format(self.output)
                 else:
@@ -257,8 +257,6 @@ def runtests():
     print(a.isAutomated())
     j = a.toJson()
     print("JSON=" + j)
-    print("executing...")
-    a.execute()
     print("XML={}".format(a.toXml()))
     blah = ActionJsonDecoder().decode(j)
     print("Decoded JSON=" + str(blah))
@@ -288,8 +286,6 @@ def runtests():
     print(j)
     blah = ActionJsonDecoder().decode(j)
     print ("type: {} data: {}".format(type(blah), str(blah)))
-    print("executing...")
-    c.execute()
     print("XML={}".format(c.toXml()))
     print("HTML={}".format(c.toHtml()))
     print("HTML={}".format(c.toHtml(short=False)))

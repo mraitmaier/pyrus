@@ -27,15 +27,10 @@ from pyrus.core.collector import Collector
 from pyrus.core.testset import TestSetJsonDecoder
 from pyrus.utils.iputils import check_ip
 from pyrus.core.teststatus import TestStatus
+from pyrus.core.testreport import TestReport
 from pyrus.core.error import Error
 from pyrus.core.reporter import ReporterFactory, HtmlReporter, XmlReporter
-
-# try to determine PYRUSROOT value; if not, define the default value
-#try:
-#    PYRUSROOT = os.environ["PYRUSROOT"]
-#except KeyError:
-#    PYRUSROOT = "."
-#PYRUS_CFG_DIR = os.path.join(PYRUSROOT, "cfg")
+from pyrus.db.mongo import MongoDbConn
 
 # Where to store results? Normally this is "$HOME/results".
 # Windows is of course an exception, we use %USERPROFILE% value as a base.    
@@ -243,6 +238,25 @@ class Runner(object):
         self.log.warning("Execution finished at {}.".format(stop))
         self._finished = stop
 
+    def _saveReport2Db(self):
+        """ """
+        conn = MongoDbConn("pyrus")
+        db = conn.open()
+        if db is None:
+            self.log.warning("MongoDB connecton cannot be opened.")
+            return
+        self.log.warning("MongoDB connecton opened: {}".format(conn.dbName))
+        # create a test report    
+        #tr = TestReport(self._testset, self._started, self._finished)
+        tr = {"testset": self._testset.toJson(), "started": self._started, 
+                "finished": self._finished}
+        id = db.testreports.insert(tr)
+        if id is None:
+            self.log.warning("Report was NOT inserted into DB.")
+        self.log.warning("Report inserted into DB.")
+        conn.close()
+        self.log.warning("MongoDB connection closed.")
+
     def createReport(self, name=None, include=None):   
         """Create and write a test run report.  
         If name is empty (None), methot creates the default report name. In
@@ -277,6 +291,7 @@ class Runner(object):
         except (Error, IOError) as ex:
             self.log.warning("Report NOT created.")
             self.log.error(ex)
+        self._saveReport2Db() # XXX save the report into DB
 
 def parseArgs():
     """Parse command-line arguments"""

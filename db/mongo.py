@@ -8,7 +8,7 @@ _DEF_MONGODB_HOST = "localhost"
 _DEF_MONGODB_PORT = 27017
 _DEF_MONGODB_NAME = "pyrus"
 
-class MongoDbConnector(object):
+class MongoDbConn(object):
     """
     """
 
@@ -50,7 +50,10 @@ class MongoDbConnector(object):
         assert self.port is not None
         assert self.dbName is not None
         assert self.dbName is not ""
-        self._dbconn = Connection(self.host, self.port)
+        try:
+            self._dbconn = Connection(self.host, self.port)
+        except Exception as err:
+            return None
         self._db = self._dbconn[self.dbName] 
         self._opened = True
         return self._db
@@ -67,7 +70,7 @@ class MongoDbConnector(object):
 
 def runtests():
     print(">>> Starting tests...")
-    conn = MongoDbConnector()
+    conn = MongoDbConn()
     db = conn.open()
     print("Connection opened: {}.".format(conn.isOpen()))
     print("  host: {}".format(conn.host))
@@ -75,6 +78,7 @@ def runtests():
     print("  DB name: '{}'".format(conn.dbName))
     print("  connection: {}".format(str(conn.connection)))
     conn.close()
+    print("Closing connection...")
     print("Connection opened: {}.".format(conn.isOpen()))
     print(">>> Stop.")
 

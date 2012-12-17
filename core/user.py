@@ -86,13 +86,19 @@ class User(object):
         return self._email
 
     def changePassword(self, old, new, confirmed):
+        """Change password. If all strings (old password, new passsword
+        and confirmed new password) are OK, change the user's password. 
+        Returns the status: True if password changed, False if not."""
+        status = False
         # only if old password has been matched, we create a new password   
-        if self.password.compare(old):
+        if self._pwd.compare(old):
             newpwd = Password(new)
             # if 'new' and 'confirmed' passwords are identical, we can change 
             # the password
             if newpwd.compare(confirmed):
                 self._pwd = newpwd
+                status = True
+        return status
 
     def toJson(self):
         return json.dumps(self, indent=4, cls=_UserJsonEncoder)
@@ -155,6 +161,19 @@ def runtests():
     print(j)
     u3 = UserJsonDecoder().decode(j)
     print(str(u3))
+    print("\nChange password:")
+    print(" case #1: new passwords do not match")
+    status = u2.changePassword("blahblah", "newpassword", "NEWpassword");
+    print("status = " + str(status))
+    print(str(u2))
+    print(" case #2: old password does not match")
+    status = u2.changePassword("blablah", "newpassword", "newpassword");
+    print("status = " + str(status))
+    print(str(u2))
+    print(" case #3: OK") 
+    status = u2.changePassword("blahblah", "newpassword", "newpassword");
+    print("status = " + str(status))
+    print(str(u2))
     print("Stop.")
 
 if __name__ == "__main__":

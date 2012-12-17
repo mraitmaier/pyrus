@@ -39,7 +39,7 @@ class Collector(object):
     def __init__(self, inputfile):
         assert inputfile is not None
         self._ts = None
-        self._factory(inputfile)
+        self._collect(inputfile)
 
     @property
     def testset(self):
@@ -48,8 +48,8 @@ class Collector(object):
     def __str__(self):
         return str(self._ts)
 
-    def _factory(self, filename):
-        """ """
+    def _collect(self, filename):
+        """A method that chooses the right method to collect data."""
         assert filename is not None
         dontcare, ext = os.path.splitext(filename)
         if ext == JSON_EXT:

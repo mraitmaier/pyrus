@@ -63,7 +63,7 @@ class Runner(object):
     container for TestSet, adding more information about the test run.
 
     Input params:
-        input   - configuration file that defines the set of tests to be 
+        finput  - configuration file that defines the set of tests to be 
                   executed. Currently, XML and JSON formats are accepted as an
                   input configuration format. The 'collector' module can
                   dynamically determine what kind of file is supplied and can
@@ -78,9 +78,9 @@ class Runner(object):
                   used as a base.
         debug   - enable debug mode (only for testing and debugging purposes)  
     """
-    def __init__(self, input, workdir, logfile=None, syslog=None, cssfile=None,
+    def __init__(self, finput, workdir, logfile=None, syslog=None, cssfile=None,
                                        xsltfile=None, debug=False):
-        assert input is not None
+        assert finput is not None
         self._testset = None
         self._log = None
         self._debug = debug
@@ -88,7 +88,7 @@ class Runner(object):
         self._xslt = xsltfile
         self._started = ""  # execution started time flag
         self._finished = "" # execution finished time flag
-        self._init(input, workdir, logfile, syslog) # initialize data structs
+        self._init(finput, workdir, logfile, syslog) # initialize data structs
 
     @property
     def log(self):
@@ -105,12 +105,12 @@ class Runner(object):
                        ))
         return s
 
-    def _init(self, input, workdir, logfile, syslog):
+    def _init(self, finput, workdir, logfile, syslog):
         """Initialize the data structures"""
         # if configuration file is specified, parse it; otherwise exit    
-        if input:
+        if finput:
             try:
-                col = Collector(input)
+                col = Collector(finput)
             except Error as ex:
                 print(ex)
                 print("Exiting...")

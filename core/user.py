@@ -7,8 +7,9 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Mar11   MR # This is just an example hot to write history notes
-# 2         Dec12   MR # Added the implementation of the Password class
+# 0.0.1   Mar11   MR # This is just an example hot to write history notes
+# 2       Dec12   MR # Added the implementation of the Password class
+# 2.1     Dec12   MR # The Password class has been moved to its own module
 #                       
 ##############################################################################
 from __future__ import print_function
@@ -18,44 +19,7 @@ _author__ = "Miran R."
 
 import json
 from enum import enum
-import hashlib
-
-# default password salt; salt can be configured
-PWD_SALT = "M1#'?_Xwqwqwe!!"
-
-class Password(object):
-    """ 
-    Password - class representing a password
-
-    This class hides the regular password behind the class instance.
-    The class uses MD5 hashing algorithm and inserts the password salt before
-    actual hashing. The default salt string is "weird" enough to be used, but
-    nevertheless the custom salt string can be specified to a class
-    constructor. 
-    """
-
-    def __init__(self, pwd, salt=PWD_SALT):
-        self._salt = salt
-        self._pwd = self.__hash(pwd)
-
-    def __str__ (self):
-        return self._pwd
-
-    def __hash(self, to_hash):    
-        """Hashes (with MD5) the given password. Salt is also inserted into
-        password before the actual hashing."""
-        assert to_hash is not None
-        return hashlib.md5(self._salt + to_hash).hexdigest()
-
-    def compare(self, to_compare):
-        """Compares the existing password with given string."""
-        assert to_compare is not None
-        status = False
-        pwd_to_cmp = self.__hash(to_compare)
-        if pwd_to_cmp == self._pwd:
-            status = True
-        return status
-
+from password import Password
 
 # Role is an enum
 Role = enum(("GUEST", "USER", "TESTER", "DEVELOPER", "MANAGER", "ADMIN",
@@ -174,20 +138,8 @@ class UserJsonDecoder(json.JSONDecoder):
 
 
 # TESTING ####################################################################
-def test_password():
-    p = Password("blahblah")
-    print(p)
-    status = p.compare("nekajpaerwrwe")
-    print("nekajpaerwrwe: "+ str(status))
-    status = p.compare("blahblah")
-    print ("blahblah: " + str(status))
-    status = p.compare("blahBlah")
-    print ("blahBlah: " + str(status))
-
-
 def runtests():
     print("Starting tests....")
-    test_password()
     print("")
     u = User("miran", "blahblah", "Miran Raitmaier", "mraitmaier@aviatnet.com",
             Role.ADMIN)

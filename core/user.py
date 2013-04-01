@@ -61,9 +61,8 @@ class User(object):
         self._email = email
     
     def __str__(self):
-        #return "{:>24}: {:>16}/{:>16} ({:32}) {:8}".format(self.fullname, 
-        return "{}: {}/{} ({}) {}".format(self.fullname, self.username, 
-                          str(self.password), self.email, self.role)
+        return "{}:{}:{}:{}:{}".format(self.username, str(self.password), 
+                self.role, self.fullname, self.email)
 
     @property
     def username(self):

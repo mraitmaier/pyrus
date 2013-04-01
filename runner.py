@@ -34,7 +34,7 @@ from pyrus.db.mongo import MongoDbConn
 
 # Where to store results? Normally this is "$HOME/results".
 # Windows is of course an exception, we use %USERPROFILE% value as a base.    
-if sys.platform == "win32":
+if sys.platform == "win32" or sys.platform == "win64":
     PYRUS_RESULTS_DIR = os.path.join(os.environ["USERPROFILE"], "results")
 else:
     PYRUS_RESULTS_DIR = os.path.expanduser(os.path.join("~", "results"))
@@ -233,8 +233,7 @@ class Runner(object):
     def __finish(self):
         """Aux method that finishes the test set execution."""
         stop = now()
-        self.log.warning("Test Set '{}' finished.".format(
-                    self._testset.name))
+        self.log.warning("Test Set '{}' finished.".format( self._testset.name))
         self.log.warning("Execution finished at {}.".format(stop))
         self._finished = stop
 

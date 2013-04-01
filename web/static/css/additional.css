@@ -1,0 +1,37 @@
+/****************************************************************************
+ * additional.css - a CSS styles that are added/overriden the default twitter
+ *                  bootstrap styles. 
+ */
+
+header, .header, #header {
+    background-color: #459e00;
+    color: #fff;
+    position: relative;
+    height: 132px;
+}
+header img, .header img, #header img {
+    float: left;
+}
+
+header h1, .header h1, #header h1 {
+    padding-top: 30px;
+}
+
+footer, .footer, #footer {
+    /*background-color: #46a546;*/
+    background-color: #459e00;
+    color: #fff;
+}
+
+footer a:link, .footer a:link, #footer a:link {
+    color: #fff;
+    text-decoration: none;
+}
+footer a:visited, .footer a:visited, #footer a:visited {
+    color: #fff;
+    text-decoration: none;
+}
+footer a:hover, .footer a:hover, #footer a:hover {
+    color: #99ff00;
+    text-decoration: none;
+}

@@ -296,7 +296,7 @@ def parseArgs():
     """Parse command-line arguments"""
     p = argparse.ArgumentParser()    
     p.add_argument("-i", metavar="FILE", dest="input", 
-            help="Name of the input (JSON) file")
+            help="Name of the input (JSON) file; [REQUIRED]", required=True)
     p.add_argument("-l", metavar="LOGFILE", dest="logfile", default=None, 
             help="Name of the logfile")
     p.add_argument("-s", metavar="SYSLOG-IP-ADDR", dest="syslog", default=None,

@@ -12,6 +12,8 @@ from nativeexecutable import NativeExecutable
 from javaexecutable import JavaExecutable
 from rubyscript import RubyScript
 from groovyscript import GroovyScript
+from luascript import LuaScript
+from juliaprogram import JuliaProgram
 
 __description__ = "executable factory function implementation"
 __version__ = "0.6"
@@ -25,6 +27,8 @@ _EXPECT_SCRIPT_EXT = [".exp"]
 _RUBY_SCRIPT_EXT = [".rb"]
 _JAVA_EXE_EXT = [".jar"]
 _GROOVY_SCRIPT_EXT = [".groovy"]
+_LUA_SCRIPT_EXT = [".lua"]
+_JULIA_EXE_EXT = [".jl"]
 
 def ExecutableFactory(cmd):
     """Tries to resolve what type of the script is to be executed and
@@ -55,6 +59,10 @@ def ExecutableFactory(cmd):
         script = JavaExecutable(cmd)
     elif ext in _GROOVY_SCRIPT_EXT:
         script = GroovyScript(cmd)
+    elif ext in _LUA_SCRIPT_EXT:
+        script = LuaScript(cmd)
+    elif ext in _JULIA_EXE_EXT:
+        script = JuliaProgram(cmd)
     else:
         script = NativeExecutable(cmd)
     return script

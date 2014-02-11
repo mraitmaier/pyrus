@@ -20,7 +20,7 @@
 
 <h3>BSD Simplified License</h3>
         
-<p>Copyright  2012-2013 Miran Raitmaier. All Rights Reserved.</p>
+<p>Copyright  2012-2014 Miran Raitmaier. All Rights Reserved.</p>
 <p>Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions are met:
 </p>

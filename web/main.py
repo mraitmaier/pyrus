@@ -10,7 +10,7 @@ from pyrus.web.bottle import get, run, static_file
 
 # page definitions
 from license import license
-from login import login, login_submit
+from login import login_get, login_post
 
 # we serve static JavaScript files...
 @get('/<filename:re:.*\.js>')

@@ -9,13 +9,13 @@ _USER_CFG_FILE = '../cfg/users.cfg'
 @get('/')
 @get('/login')
 @get('/login/')
-def login():
+def login_get():
     return template('login')
 
 @post('/')
 @post('/login')
 @post('/login/')
-def login_submit():
+def login_post():
     name = request.forms.get('username')
     pwd = request.forms.get('password')
     if check_user(name, pwd):

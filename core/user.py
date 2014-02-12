@@ -10,6 +10,7 @@
 # 0.0.1   Mar11   MR # This is just an example hot to write history notes
 # 2       Dec12   MR # Added the implementation of the Password class
 # 2.1     Dec12   MR # The Password class has been moved to its own module
+# 3       Feb14   MR # Added a 'hint' property, to store password hint
 #                       
 ##############################################################################
 from __future__ import print_function
@@ -59,10 +60,11 @@ class User(object):
         self._name = fullname
         self._type = role
         self._email = email
+        self._hint = hint
     
     def __str__(self):
-        return "{}:{}:{}:{}:{}".format(self.username, str(self.password), 
-                self.role, self.fullname, self.email)
+        return "{}:{}:{}:{}:{}:{}".format(self.username, str(self.password), 
+                self.role, self.fullname, self.email, self._hint)
 
     @property
     def username(self):
@@ -83,6 +85,10 @@ class User(object):
     @property
     def email(self):
         return self._email
+
+    @property
+    def hint(self):
+        return self._hint
 
     def changePassword(self, old, new, confirmed):
         """Change password. If all strings (old password, new passsword
@@ -113,6 +119,7 @@ class _UserJsonEncoder(json.JSONEncoder):
             d["fullname"] = obj.fullname
             d["role"]  = obj.role
             d["email"] = obj.email
+            d["hint"] = obj.hint
             return d
         return json.JSONEncoder(obj)
 
@@ -137,9 +144,11 @@ class UserJsonDecoder(json.JSONDecoder):
             atype = toRole(d["role"])
         if "email" in d:
             email = d["email"]
+        if "hint" in d:
+            hint = d["hint"]
         assert user is not None, "We need a username..."
         assert passwd is not None, "We need a password..." 
-        return User(user, passwd, full, email, atype)
+        return User(user, passwd, full, email, atype, hint)
 
 
 # TESTING ####################################################################

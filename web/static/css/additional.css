@@ -14,15 +14,15 @@ header img, .header img, #header img {
 }
 
 header h1, .header h1, #header h1 {
-    padding-top: 30px;
+    padding-top: 36px;
 }
 
 footer, .footer, #footer {
-    /*background-color: #46a546;*/
     background-color: #459e00;
     color: #fff;
 }
 
+/*
 footer a:link, .footer a:link, #footer a:link {
     color: #fff;
     text-decoration: none;
@@ -35,3 +35,4 @@ footer a:hover, .footer a:hover, #footer a:hover {
     color: #99ff00;
     text-decoration: none;
 }
+*/

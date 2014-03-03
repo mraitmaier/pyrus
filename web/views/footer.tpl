@@ -3,7 +3,7 @@
                 <footer>
                 <p>
     &nbsp; &nbsp; &copy; 2012-2014 Miran R. &nbsp; &nbsp; 
-    <a href="license">License</a>
+   <!-- <a href="license">License</a> -->
                 </p>
                 </footer>
                 </div>

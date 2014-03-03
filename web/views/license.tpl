@@ -1,12 +1,14 @@
 <!DOCTYPE html> 
-<html> 
+<html lang="en"> 
     <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE-edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Pyrus License</title>
-        <meta charset="utf-8" />
-        <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
-        <link rel="stylesheet" type="text/css" href="additional.css" />
-        <script source="jquery.min.js"></script>
-        <script source="bootstrap.min.js"></script>
+
+<!-- include jquery & bootstrap: 'views/includes.tpl' -->        
+%include includes
+   
     </head>
     <body>
 
@@ -14,6 +16,8 @@
 
 <!-- include header template: 'views/header.tpl' -->
 %include header
+<!-- include navigation bar: 'views/nav_bar.tpl' -->
+%include nav_bar
 
         <div class="row-fluid" id="main">
             <div class="span8">

@@ -1,8 +1,8 @@
 ##############################################################################
 # license.py - 
 ##############################################################################
-from pyrus.web.bottle import  get, post, template, request
-from pyrus.core.user import User
+from bottle import  get, post, template, request
+#from pyrus.core.user.user import User
 
 @get('/license')
 @get('/license/')

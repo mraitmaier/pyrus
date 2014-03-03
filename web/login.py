@@ -1,26 +1,29 @@
 ##############################################################################
 # login.py - 
 ##############################################################################
-from pyrus.web.bottle import  get, post, template, request
-from pyrus.core.user import User
+#from bottle import  get, post, template, request
+import bottle
+from pyrus.core.user.user import User
+from main import post_get, postd, aaa
 
-_USER_CFG_FILE = '../cfg/users.cfg'
+#_USER_CFG_FILE = '../cfg/users.cfg'
 
-@get('/')
-@get('/login')
-@get('/login/')
+#@bottle.get('/')
+@bottle.get('/login')
+@bottle.get('/login/')
 def login_get():
     return template('login')
 
-@post('/')
-@post('/login')
-@post('/login/')
+#@bottle.post('/')
+@bottle.post('/login')
+@bottle.post('/login/')
 def login_post():
-    name = request.forms.get('username')
-    pwd = request.forms.get('password')
-    if check_user(name, pwd):
-        return template('index')
-    return template('login')
+    name = post_get('username')
+    pwd = post_get('password')
+    aaa.login(name, pwd, success_redirect='/index', fail_redirect='/login')
+##    if check_user(name, pwd):
+##        return template('index')
+##    return template('login')
 
 def check_user(user, pwd):
     '''

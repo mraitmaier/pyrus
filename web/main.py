@@ -116,7 +116,6 @@ def login():
     password = post_get('password')
     sess = bottle.request.environ.get('beaker.session')
     sess['name'] = username
-    print "DEBUG login POST: %s" % str(sess) # DEBUG
     return bottle.template('index', username=username)
 
 @bottle.route('/logout')
@@ -138,11 +137,6 @@ def license():
 def index():
     ''' '''
     sess = bottle.request.environ.get('beaker.session')
-    print "DEBUG index GET: %s" % str(sess) # DEBUG
-#    if 'name' in sess:
-#        return bottle.template('index', username=sess['name'])
-#    else:
-#        return bottle.template('index', username='UNKNOWN')
     return bottle.template('index', username=sess['name'])
 
 def user_is_logged(session, username):

@@ -64,7 +64,7 @@ def post_get(name, default=''):
 def authenticated(func):
     '''Decorator to check whether current user is logged in.
     source: http://stackoverflow.com/questions/11698473/
-             bottle-hooks-with-beaker-session-middleware-and-checking-logins
+    bottle-hooks-with-beaker-session-middleware-and-checking-logins
     '''
     def wrapped(*args, **kwargs):
 

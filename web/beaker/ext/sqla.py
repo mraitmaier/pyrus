@@ -1,4 +1,4 @@
-import cPickle
+import pickle
 import logging
 import pickle
 from datetime import datetime
@@ -79,7 +79,7 @@ class SqlaNamespaceManager(OpenResourceNamespaceManager):
             self._is_new = False
             try:
                 self.hash = result['data']
-            except (IOError, OSError, EOFError, cPickle.PickleError,
+            except (IOError, OSError, EOFError, pickle.PickleError,
                     pickle.PickleError):
                 log.debug("Couln't load pickle data, creating new storage")
                 self.hash = {}
@@ -118,7 +118,7 @@ class SqlaNamespaceManager(OpenResourceNamespaceManager):
         del self.hash[key]
 
     def keys(self):
-        return self.hash.keys()
+        return list(self.hash.keys())
 
 
 class SqlaContainer(Container):

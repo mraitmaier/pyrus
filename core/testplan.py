@@ -7,24 +7,24 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Apr11   MR # initial version
-# 0.0.2     Jan12   MR # simplification: Configurations are no-more; test plan
-#                        carries the list of test cases
+#   1   Apr11   MR # initial version
+#   2   Jan12   MR # simplification: Configurations are no-more; test plan carries the list of test cases
+#   3   Dec14   MR # ported to Py3
 #                       
 ##############################################################################
-from __future__ import print_function
 
 __description__ = "TestPlan class implementation"
-__version__ = "0.0.2"
+__version__ = "3"
 __author__ = "Miran R."
 
 import json
-import StringIO
-from testable import _Testable
-from action import AutomatedAction, NoOpAction, ManualAction, ActionJsonDecoder
-from sut import SystemUnderTest, SutJsonDecoder
-from testcase import TestCase, TestCaseJsonDecoder
-from teststep import TestStep
+import io
+from pyrus.core.testable import _Testable
+from pyrus.core.action import AutomatedAction, NoOpAction, ManualAction, ActionJsonDecoder
+from pyrus.core.sut import SystemUnderTest, SutJsonDecoder
+from pyrus.core.testcase import TestCase, TestCaseJsonDecoder
+from pyrus.core.teststep import TestStep
+from functools import reduce
 
 class TestPlan(_Testable):
     """

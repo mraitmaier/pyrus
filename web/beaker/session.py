@@ -1,4 +1,4 @@
-import Cookie
+import http.cookies
 import os
 from datetime import datetime, timedelta
 import time
@@ -42,11 +42,11 @@ except ImportError:
             return md5(md5(id_str).hexdigest()).hexdigest()
 
 
-class SignedCookie(Cookie.BaseCookie):
+class SignedCookie(http.cookies.BaseCookie):
     """Extends python cookie to give digital signature support"""
     def __init__(self, secret, input=None):
         self.secret = secret.encode('UTF-8')
-        Cookie.BaseCookie.__init__(self, input)
+        http.cookies.BaseCookie.__init__(self, input)
 
     def value_decode(self, val):
         val = val.strip('"')
@@ -145,10 +145,10 @@ class Session(dict):
             if secret:
                 try:
                     self.cookie = SignedCookie(secret, input=cookieheader)
-                except Cookie.CookieError:
+                except http.cookies.CookieError:
                     self.cookie = SignedCookie(secret, input=None)
             else:
-                self.cookie = Cookie.SimpleCookie(input=cookieheader)
+                self.cookie = http.cookies.SimpleCookie(input=cookieheader)
 
             if not self.id and self.key in self.cookie:
                 self.id = self.cookie[self.key].value
@@ -160,7 +160,7 @@ class Session(dict):
         else:
             try:
                 self.load()
-            except Exception, e:
+            except Exception as e:
                 if invalidate_corrupt:
                     util.warn(
                         "Invalidating corrupt session %s; "
@@ -213,7 +213,7 @@ class Session(dict):
         try:
             if self.httponly:
                 self.cookie[self.key]['httponly'] = True
-        except Cookie.CookieError, e:
+        except http.cookies.CookieError as e:
             if 'Invalid Attribute httponly' not in str(e):
                 raise
             util.warn('Python 2.6+ is required to use httponly')
@@ -407,9 +407,9 @@ class Session(dict):
         self.namespace.acquire_write_lock(replace=True)
         try:
             if accessed_only:
-                data = dict(self.accessed_dict.items())
+                data = dict(list(self.accessed_dict.items()))
             else:
-                data = dict(self.items())
+                data = dict(list(self.items()))
 
             if self.encrypt_key:
                 data = self._encrypt_data(data)
@@ -520,7 +520,7 @@ class CookieSession(Session):
 
         try:
             self.cookie = SignedCookie(validate_key, input=cookieheader)
-        except Cookie.CookieError:
+        except http.cookies.CookieError:
             self.cookie = SignedCookie(validate_key, input=None)
 
         self['_id'] = _session_id()
@@ -678,7 +678,7 @@ class SessionObject(object):
 
     def __iter__(self):
         """Only works for proxying to a dict"""
-        return iter(self._session().keys())
+        return iter(list(self._session().keys()))
 
     def __contains__(self, key):
         return key in self._session()

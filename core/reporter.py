@@ -4,39 +4,43 @@
    NOTE: this module should NOT be used as standalone program, except for
          testing purposes!
 
-   History:
-    1.0   - May 2008
-            The first stable version
-    1.0.1 - July, 10th 2008
-            Changed behaviour of the XSL transformation: instead of linking
-            the absolute path to XSL file, the XSL file is now copied to the
-            results directory; this is more convenient way, I think.
-    1.1   - July, 10th 2008
-            Added XML schema validation
-    1.1.1 - September, 30th 2008
-            bugfixes
-    2.0   - Jan 2009
-            Changes in XML structure reflecting that setups/cleanup are now
-            lists; removed the XML schema validation due to lxml dependancy;
-    2.0.1 - Mar 2010
-            TestObject can be empty.            
-    2.1.0 - Feb 2011
-            Added HTML report processing
-    2.2.0 - Massive refactoring (old XML reporter removed, new XML reporting
-            added (new means using 'toXml() methods); the script has been
-            substantially reduced...; JsonReporter added;
 """
+
+# HISTORY ########################################################################################################################
+#   
+#    1.0   - May 2008 The first stable version
+#    1.0.1 - July, 10th 2008
+#            Changed behaviour of the XSL transformation: instead of linking
+#            the absolute path to XSL file, the XSL file is now copied to the
+#            results directory; this is more convenient way, I think.
+#    1.1   - July, 10th 2008
+#            Added XML schema validation
+#    1.1.1 - September, 30th 2008
+#            bugfixes
+#    2.0   - Jan 2009
+#            Changes in XML structure reflecting that setups/cleanup are now
+#            lists; removed the XML schema validation due to lxml dependancy;
+#    2.0.1 - Mar 2010
+#            TestObject can be empty.            
+#    2.1.0 - Feb 2011
+#            Added HTML report processing
+#    2.2.0 - Massive refactoring (old XML reporter removed, new XML reporting
+#            added (new means using 'toXml() methods); the script has been
+#            substantially reduced...; JsonReporter added;
+#    3   Dec14   MR  Ported to Py3
+#################################################################################################################################
+
 import os.path 
 import sys
 import codecs
 from datetime import datetime
 from shutil import copy
 from xml.etree.ElementTree import Element, SubElement, ElementTree
-from error import Error
+from pyrus.core.error import Error
 
-VERSION = "2.2.0"
-NAME = "Reporter"
-AUTHOR = "Miran R."
+__version__ = "3"
+__name__ = "Reporter"
+__author__= "Miran R."
 
 DEFAULT_PATH = "."
 NEWLINE = "\n"
@@ -248,9 +252,9 @@ def testHtml():
     rpt.write(ts)
 
 if __name__ == "__main__":
-    print __doc__
-    from testset import TestSet
-    from collector import Collector
+    print(__doc__)
+    from .testset import TestSet
+    from .collector import Collector
     testXml()
 #    testHtml()
 

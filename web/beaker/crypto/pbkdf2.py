@@ -73,6 +73,7 @@ from random import randint
 from base64 import b64encode
 
 from beaker.crypto.util import hmac as HMAC, hmac_sha1 as SHA1
+import collections
 
 
 def strxor(a, b):
@@ -101,7 +102,7 @@ class PBKDF2(object):
 
     def __init__(self, passphrase, salt, iterations=1000,
                  digestmodule=SHA1, macmodule=HMAC):
-        if not callable(macmodule):
+        if not isinstance(macmodule, collections.Callable):
             macmodule = macmodule.new
         self.__macmodule = macmodule
         self.__digestmodule = digestmodule
@@ -139,7 +140,7 @@ class PBKDF2(object):
         assert (1 <= i and i <= 0xffffffff)
         U = self.__prf(self.__passphrase, self.__salt + pack("!L", i))
         result = U
-        for j in xrange(2, 1 + self.__iterations):
+        for j in range(2, 1 + self.__iterations):
             U = self.__prf(self.__passphrase, U)
             result = strxor(result, U)
         return result
@@ -156,23 +157,23 @@ class PBKDF2(object):
 
         # passphrase and salt must be str or unicode (in the latter
         # case, we convert to UTF-8)
-        if isinstance(passphrase, unicode):
+        if isinstance(passphrase, str):
             passphrase = passphrase.encode("UTF-8")
         if not isinstance(passphrase, str):
             raise TypeError("passphrase must be str or unicode")
-        if isinstance(salt, unicode):
+        if isinstance(salt, str):
             salt = salt.encode("UTF-8")
         if not isinstance(salt, str):
             raise TypeError("salt must be str or unicode")
 
         # iterations must be an integer >= 1
-        if not isinstance(iterations, (int, long)):
+        if not isinstance(iterations, int):
             raise TypeError("iterations must be an integer")
         if iterations < 1:
             raise ValueError("iterations must be at least 1")
 
         # prf must be callable
-        if not callable(prf):
+        if not isinstance(prf, collections.Callable):
             raise TypeError("prf must be callable")
 
         self.__passphrase = passphrase
@@ -209,13 +210,13 @@ def crypt(word, salt=None, iterations=None):
         salt = _makesalt()
 
     # salt must be a string or the us-ascii subset of unicode
-    if isinstance(salt, unicode):
+    if isinstance(salt, str):
         salt = salt.encode("us-ascii")
     if not isinstance(salt, str):
         raise TypeError("salt must be a string")
 
     # word must be a string or unicode (in the latter case, we convert to UTF-8)
-    if isinstance(word, unicode):
+    if isinstance(word, str):
         word = word.encode("UTF-8")
     if not isinstance(word, str):
         raise TypeError("word must be a string or unicode")
@@ -335,7 +336,7 @@ def test_pbkdf2():
         raise RuntimeError("self-test failed")
 
     # crypt 4 (unicode)
-    result = crypt(u'\u0399\u03c9\u03b1\u03bd\u03bd\u03b7\u03c2',
+    result = crypt('\u0399\u03c9\u03b1\u03bd\u03bd\u03b7\u03c2',
         '$p5k2$$KosHgqNo$9mjN8gqjt02hDoP0c2J0ABtLIwtot8cQ')
     expected = '$p5k2$$KosHgqNo$9mjN8gqjt02hDoP0c2J0ABtLIwtot8cQ'
     if result != expected:

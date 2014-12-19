@@ -7,17 +7,18 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Mar11   MR # This is just an example hot to write history notes
+#  1 Mar11   MR # Initial version
+#  2 Dec14   MR # Ported to Py3
 #                       
 ##############################################################################
 __description__ = "TestStep class implementation"
-__version__ = "0.0.1"
+__version__ = "2"
 __author__ = "Miran R."
 
 import json
-from action import AutomatedAction, NoOpAction, ManualAction, ActionJsonDecoder
-from teststatus import TestStatus, toTestStatus
-from error import Error
+from pyrus.core.action import AutomatedAction, NoOpAction, ManualAction, ActionJsonDecoder
+from pyrus.core.teststatus import TestStatus, toTestStatus
+from pyrus.core.error import Error
 
 class TestStep(object):
     """
@@ -173,38 +174,38 @@ class TestStepJsonDecoder(json.JSONDecoder):
 def runtests():
     print( "Starting unit tests...")
     s = TestStep("a test step")
-    print(str(s))
+    print((str(s)))
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>")
     act = AutomatedAction("test/scripts/test.py", "arg1")
     s = TestStep("a different test step", act, TestStatus.XFAIL)
     j = s.toJson()
     print(j)
     ts = TestStepJsonDecoder().decode(j)
-    print("type: {} \ndata='{}'".format(type(ts), ts))
+    print(("type: {} \ndata='{}'".format(type(ts), ts)))
     print("Executing...")
     res, output = s.execute()
-    print(str(s))
-    print("RC={} Output:\n'{}'".format(str(res), output))
-    print("XML='{}'".format(s.toXml()))
+    print((str(s)))
+    print(("RC={} Output:\n'{}'".format(str(res), output)))
+    print(("XML='{}'".format(s.toXml())))
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>")
     act2 = AutomatedAction("test/scripts/test.py")
     s2 = TestStep("another test step", act2, TestStatus.PASS)
     print("Executing again...")
     rs, out = s2.execute()
-    print(str(s2))
-    print("RC={} Output:\n'{}'".format(str(rs), out))
+    print((str(s2)))
+    print(("RC={} Output:\n'{}'".format(str(rs), out)))
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>")
     act = AutomatedAction("test/scripts/tet.py")
     s2 = TestStep("false test step", act, TestStatus.XFAIL)
     print("Executing again...")
     rs, out = s2.execute()
-    print(str(s2))
-    print("RC={} Output:\n'{}'".format(str(rs), out))
-    print("XML='{}'".format(s2.toXml()))
-    print("HTML='{}'".format(s2.toHtml()))
-    print("HTML='{}'".format(s2.toHtml(False)))
-    print("HTML='{}'".format(s2.toHtml(cssClass=".teststep")))
-    print("HTML='{}'".format(s2.toHtml(False, cssClass=".teststep")))
+    print((str(s2)))
+    print(("RC={} Output:\n'{}'".format(str(rs), out)))
+    print(("XML='{}'".format(s2.toXml())))
+    print(("HTML='{}'".format(s2.toHtml())))
+    print(("HTML='{}'".format(s2.toHtml(False))))
+    print(("HTML='{}'".format(s2.toHtml(cssClass=".teststep"))))
+    print(("HTML='{}'".format(s2.toHtml(False, cssClass=".teststep"))))
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>")
     print("Stop")
 

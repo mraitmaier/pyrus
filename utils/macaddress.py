@@ -3,10 +3,10 @@
 
    NOTE: this module is not to be used standalone, except for testing purposes!
 """   
-from __future__ import print_function
+
 
 __description__ = "MAC address"
-__version__ = "1.0"
+__version__ = "2"
 __author__ = "Miran R."
 
 
@@ -157,7 +157,7 @@ def toString(mac):
     # check MAC address bytes
     if len(mac) == 6:
         for byte in mac:
-            if byte not in range(0, 256):
+            if byte not in list(range(0, 256)):
                 return s
         # if everything is OK, create the MAC address string 
         s = "%02x:%02x:%02x:%02x:%02x:%02x" % (mac[0], mac[1], mac[2], 

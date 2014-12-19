@@ -7,15 +7,16 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Apr11   MR # Initial version
+#  1     Apr11   MR # Initial version
+#  2     Dec14   MR # Ported to Py3
 #                       
 ##############################################################################
 __description__ = "a _Runnable mixin implementation"
-__version__ = "0.0.1"
+__version__ = "2"
 __author__ = "Miran R."
 
 import logging
-from teststatus import TestStatus
+from pyrus.core.teststatus import TestStatus
 
 class Runnable(object):
     """Abstract base class for all containers"""

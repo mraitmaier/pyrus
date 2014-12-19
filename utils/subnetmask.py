@@ -7,12 +7,12 @@
 
 """
 
-from __future__ import print_function
+
 import sys, os
 import iputils
 
 __description__ = "a SubnetMask class implementation"
-__version__ = "1.0"
+__version__ = "2"
 __author__ = "Miran R."
 
 # Define dictionary that represents possible mask values as keys and
@@ -69,7 +69,7 @@ class SubnetMask(object):
             lst = mask.split(".")
             for num in lst:
                 bite = int(num)
-                if bite in _MASK_VALS.keys():
+                if bite in list(_MASK_VALS.keys()):
                     bits += _MASK_VALS[bite]
                 else:
                     raise ValueError("subnet mask is not valid.")
@@ -85,7 +85,7 @@ class SubnetMask(object):
         if len(mask_lst) != 4:
             return False
         # define valid values for subnet mask   
-        valid_values = _MASK_VALS.keys()
+        valid_values = list(_MASK_VALS.keys())
         prev = 255
         for part in mask_lst:
             if part == "":
@@ -165,7 +165,7 @@ def run_tests():
     for val in range(8, 33):
         print("Trying mask with {} bits...".format(val), end=" ")
         try:
-            msk = SubnetMask(val,fromBits=True)
+            msk = SubnetMask(val, fromBits=True)
         except ValueError as ex:
             print(" FAIL {}".format(ex))
         else:
@@ -174,10 +174,10 @@ def run_tests():
             print(msk.bits)
             print(str(msk))
     print("#5 ## invalid mask test from bits ##")
-    for val in [0,1,2,3,4,5,6,7,33,34,35,36,666,999,-1,-15,-666,2.4,"bla"]:
+    for val in [0,1,2,3,4,5,6,7,33,34,35,36,666,999,-1,-15,-666,2.4]:
         print("Trying mask with {} bits...".format(val), end=" ")
         try:
-            msk = SubnetMask(val,fromBits=True)
+            msk = SubnetMask(val, fromBits=True)
         except ValueError as ex:
             print(" OK {}".format(ex))
         else:

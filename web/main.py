@@ -38,16 +38,17 @@ if 'session_file_path' in Cfg:
     sess_path = Cfg['session_file_path'] 
 else:
     sess_path = _DEFAULT_SESSION_PATH
+
 session_opts = {
-        'session.data_dir': sess_path,
-        'session.cookie_expires': True,
-        'session.httponly': True,
-        'session.timeout': 3600*8, # 8 hours
-        'session.cookie_expires': True,
-        'session.type': 'file',
-        'session.encrypt_key': _generate_key() ,
-        'session.validate_key': True,
-        'session.auto': True
+    'session.data_dir': sess_path,
+    'session.cookie_expires': True,
+    'session.httponly': True,
+    'session.timeout': 3600*8, # 8 hours
+    'session.cookie_expires': True,
+    'session.type': 'file',
+    'session.encrypt_key': _generate_key() ,
+    'session.validate_key': True,
+    'session.auto': True
 }
 app = SessionMiddleware(bottle.app(), session_opts)
 #session = bottle.request.environ.get('beaker.session')

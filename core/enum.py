@@ -22,10 +22,10 @@ if __name__ == "__main__":
     print("Testing...")
     TestStatus = enum(("PASS", "FAIL", "XFAIL", "NOT_TESTED", "UNKNOWN"))
     print(TestStatus)
-    print(str(TestStatus))
-    print(repr(TestStatus))
-    print(TestStatus.PASS)
-    print(TestStatus.FAIL)
+    print((str(TestStatus)))
+    print((repr(TestStatus)))
+    print((TestStatus.PASS))
+    print((TestStatus.FAIL))
     assert TestStatus.PASS != TestStatus.FAIL
     assert TestStatus.PASS in TestStatus
     print("###")
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     try:
         y = TestStatus.BLAH
     except AttributeError as exc:
-        print("ERROR: {}".format(exc))
+        print(("ERROR: {}".format(exc)))
     print("It's iterable!")
     for v in TestStatus:
         print(v)

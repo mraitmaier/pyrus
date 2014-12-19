@@ -7,16 +7,17 @@
 """
 # HISTORY #####################################################################
 # 
-# 0.0.1     Mar11   MR  Initial version - starting all over again...
+#   1   Mar11   MR  Initial version - starting all over again...
+#   2   Dec14   MR  Port to Py3
 # 
 ###############################################################################
 __description__ = "Action clases implementation"
-__version__ = "0.0.1"
+__version__ = "2"
 __author__ = "Miran R."
 
-from teststatus import TestStatus
-from exefactory import ExecutableFactory
-import StringIO
+from pyrus.core.teststatus import TestStatus
+from pyrus.core.exefactory import ExecutableFactory
+import io
 import json
  
 class _Action(object):
@@ -202,7 +203,7 @@ class AutomatedAction(_Action):
         # we produce the right version of executable
         exe = ExecutableFactory(self.script)
         # process environment variables prior to execution, if present
-        for key, val in kwargs.items():
+        for key, val in list(kwargs.items()):
             exe.setEnv(key, val) 
         # execute and pick up the results 
         self.returncode, self.output = exe.execute(self.args)
@@ -281,16 +282,16 @@ def runtests():
     print("HTML={}".format(b.toHtml(short=False)))
     print(">>> ManualAction...")
     c = ManualAction("Manual action 1")
-    print str(c)
+    print(str(c))
     j = c.toJson()
     print(j)
     blah = ActionJsonDecoder().decode(j)
-    print ("type: {} data: {}".format(type(blah), str(blah)))
+    print("type: {} data: {}".format(type(blah), str(blah)))
     print("XML={}".format(c.toXml()))
     print("HTML={}".format(c.toHtml()))
     print("HTML={}".format(c.toHtml(short=False)))
     print("Stop")
 
 if __name__ == '__main__':
-   print __doc__
+   print(__doc__)
    runtests()

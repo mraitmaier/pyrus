@@ -64,28 +64,28 @@ class Command(object):
         Displays the complete information about the command. 
         Can be used for 'help' command implementation.
         """
-        print 
-        print 'COMMAND:' 
-        print '\t', self._name
-        print
-        print 'DESCRIPTION:'
-        print '\t', self._desc
-        print
-        print 'SYNTAX:' 
-        print '\t%s' % self._syntax
-        print
-        print 'HELP:'
-        print self._help
-        print
+        print() 
+        print('COMMAND:') 
+        print('\t', self._name)
+        print()
+        print('DESCRIPTION:')
+        print('\t', self._desc)
+        print()
+        print('SYNTAX:') 
+        print('\t%s' % self._syntax)
+        print()
+        print('HELP:')
+        print(self._help)
+        print()
     def displayShortInfo(self):
         """Displays short - one line - help info."""
         if self.isHidden():
-            print '*%8s - %s' % (self._name, self._desc)
+            print('*%8s - %s' % (self._name, self._desc))
         else:
-            print ' %8s - %s' % (self._name, self._desc)
+            print(' %8s - %s' % (self._name, self._desc))
     def checkSyntax(self):   
         """Checks the commands syntax."""
-        print "Checking syntax not implemented yet."
+        print("Checking syntax not implemented yet.")
 
 class CommandList(list):
     """
@@ -107,12 +107,12 @@ class CommandList(list):
         for cmd in self:
             if not cmd.isHidden():
                 cmd.displayShortInfo()
-        print
+        print()
     def displayAll(self):
         """Displays short information for all commands in the list."""
         for cmd in self:
             cmd.displayShortInfo()
-        print
+        print()
     def find(self, name):
         """
         Searches the list of commands and tries to find the match
@@ -139,9 +139,9 @@ class CommandError(Exception):
 #* Helper function
 #*
 def test():
-    print 'Standalone execution'
-    print __doc__
-    print
+    print('Standalone execution')
+    print(__doc__)
+    print()
 
     tst = Command('test')
     hlp = Command('help')

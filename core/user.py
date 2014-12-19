@@ -11,20 +11,20 @@
 # 2       Dec12   MR # Added the implementation of the Password class
 # 2.1     Dec12   MR # The Password class has been moved to its own module
 # 3       Feb14   MR # Added a 'hint' property, to store password hint
+# 4       Dec14   MR # Ported to Py3 (finally!)
 #                       
 ##############################################################################
-from __future__ import print_function
+
 __description__ = "Users class implementation"
-__version__ = "2"
+__version__ = "4"
 _author__ = "Miran R."
 
 import json
-from enum import enum
-from password import Password
+from pyrus.core.enum import enum
+from pyrus.core.password import Password
 
 # Role is an enum
-Role = enum(("GUEST", "USER", "TESTER", "DEVELOPER", "MANAGER", "ADMIN",
-             "UNKNOWN"))
+Role = enum(("GUEST", "USER", "TESTER", "DEVELOPER", "MANAGER", "ADMIN", "UNKNOWN"))
 def toRole(strVal):
     """ """
     strVal = strVal.lower().strip()
@@ -51,8 +51,7 @@ class User(object):
         User - class used for username/password administration 
     """
 
-    def __init__(self, username, password, 
-                       fullname="", email="", role=Role.TESTER, hint=""):
+    def __init__(self, username, password, fullname="", email="", role=Role.TESTER, hint=""):
         assert username is not None
         assert password is not None
         self._user = username
@@ -63,8 +62,7 @@ class User(object):
         self._hint = hint
     
     def __str__(self):
-        return "{}:{}:{}:{}:{}:{}".format(self.username, str(self.password), 
-                self.role, self.fullname, self.email, self._hint)
+        return "{}:{}:{}:{}:{}:{}".format(self.username, str(self.password), self.role, self.fullname, self.email, self._hint)
 
     @property
     def username(self):

@@ -1,4 +1,4 @@
-from __future__ import with_statement
+
 from beaker.container import NamespaceManager, Container
 from beaker.crypto.util import sha1
 from beaker.exceptions import InvalidCacheBackendError, MissingCacheParameter

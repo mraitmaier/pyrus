@@ -9,7 +9,7 @@
 import sys, os
 
 __description__ = "IP address"
-__version__ = "1.0.0"
+__version__ = "2"
 __author__ = "Miran R."
 
 LOCALHOST = "127.0.0.1"
@@ -62,8 +62,7 @@ class IpAddress(object):
 
    def toHex(self, prefixed=True):
       """
-      Returns an IP address as a Hex string representation.
-      The 'prefixed' optional parameters defines whether hex value
+      Returns an IP address as a Hex string representation. The 'prefixed' optional parameters defines whether hex value
       should be prefixed with '0x'. True by default.
       """
       # set hex prefix   
@@ -118,63 +117,63 @@ class IpAddress(object):
 def run_tests():
    print("Starting tests...")
    ip = IpAddress("192.168.180.1")
-   print("IP: %s" % ip.address)
-   print("Hex (with prefix): %s" % ip.toHex())
-   print("Hex (without prefix): %s" % ip.toHex(False))
-   print("Unicast? {}".format(ip.isUnicast()))
-   print("Multicast? {}".format(ip.isMulticast()))
-   print("Private? {}".format(ip.isPrivate()))
-   print("Experimental? {}".format(ip.isExperimental()))
-   print(str(ip))
+   print(("IP: %s" % ip.address))
+   print(("Hex (with prefix): %s" % ip.toHex()))
+   print(("Hex (without prefix): %s" % ip.toHex(False)))
+   print(("Unicast? {}".format(ip.isUnicast())))
+   print(("Multicast? {}".format(ip.isMulticast())))
+   print(("Private? {}".format(ip.isPrivate())))
+   print(("Experimental? {}".format(ip.isExperimental())))
+   print((str(ip)))
    del ip
    print("### test")
    ip = IpAddress(LOOPBACK)
-   print("IP: %s" % ip.address)
-   print("Hex (with prefix): %s" % ip.toHex())
-   print("Hex (without prefix): %s" % ip.toHex(False))
-   print(unicode(ip))
+   print(("IP: %s" % ip.address))
+   print(("Hex (with prefix): %s" % ip.toHex()))
+   print(("Hex (without prefix): %s" % ip.toHex(False)))
+   print((str(ip)))
    del ip
    print("### test")
    try:
       ip = IpAddress("192.168.2.3.4")
    except AssertionError as ex:
-      print("Assertion caught: {}".format(ex))
+      print(("Assertion caught: {}".format(ex)))
    else:
       print("Did not caught exception: Fail")
    print("### test")
    try:
       ip = IpAddress("192.168.333.4")
    except AssertionError as ex:
-      print("Assertion caught: {}".format(ex))
+      print(("Assertion caught: {}".format(ex)))
    else:
       print("Did not caught exception: Fail")
    print( "### test")
    ip = IpAddress("172.16.15.33")
-   print("IP: {}".format(ip.address))
-   print("Hex (with prefix): {}".format(ip.toHex()))
-   print("Hex (without prefix): {}".format(ip.toHex(False)))
-   print("Unicast? {}".format(ip.isUnicast()))
-   print("Multicast: {}".format(ip.isMulticast()))
-   print("Private? {}".format(ip.isPrivate()))
-   print("Experimental? {}".format(ip.isExperimental()))
+   print(("IP: {}".format(ip.address)))
+   print(("Hex (with prefix): {}".format(ip.toHex())))
+   print(("Hex (without prefix): {}".format(ip.toHex(False))))
+   print(("Unicast? {}".format(ip.isUnicast())))
+   print(("Multicast: {}".format(ip.isMulticast())))
+   print(("Private? {}".format(ip.isPrivate())))
+   print(("Experimental? {}".format(ip.isExperimental())))
    print( "### test")
    ip = IpAddress("224.16.15.33")
-   print("IP: {}".format(ip.address))
-   print("Hex (with prefix): {}".format(ip.toHex()))
-   print("Hex (without prefix): {}".format(ip.toHex(False)))
-   print("Unicast? {}".format(ip.isUnicast()))
-   print("Multicast? {}".format(ip.isMulticast()))
-   print("Private? {}".format(ip.isPrivate()))
-   print("Experimental? {}".format(ip.isExperimental()))
+   print(("IP: {}".format(ip.address)))
+   print(("Hex (with prefix): {}".format(ip.toHex())))
+   print(("Hex (without prefix): {}".format(ip.toHex(False))))
+   print(("Unicast? {}".format(ip.isUnicast())))
+   print(("Multicast? {}".format(ip.isMulticast())))
+   print(("Private? {}".format(ip.isPrivate())))
+   print(("Experimental? {}".format(ip.isExperimental())))
    print( "### test")
    ip = IpAddress("242.16.15.33")
-   print("IP: {}".format(ip.address))
-   print("Hex (with prefix): {}".format(ip.toHex()))
-   print("Hex (without prefix): {}".format(ip.toHex(False)))
-   print("Unicast? {}".format(ip.isUnicast()))
-   print("Multicast? {}".format(ip.isMulticast()))
-   print("Private? {}".format(ip.isPrivate()))
-   print("Experimental? {}".format(ip.isExperimental()))
+   print(("IP: {}".format(ip.address)))
+   print(("Hex (with prefix): {}".format(ip.toHex())))
+   print(("Hex (without prefix): {}".format(ip.toHex(False))))
+   print(("Unicast? {}".format(ip.isUnicast())))
+   print(("Multicast? {}".format(ip.isMulticast())))
+   print(("Private? {}".format(ip.isPrivate())))
+   print(("Experimental? {}".format(ip.isExperimental())))
    print("End.")
 
 if __name__ == '__main__':

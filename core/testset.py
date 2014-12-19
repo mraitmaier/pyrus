@@ -7,33 +7,32 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Mar11   MR # initial version
-# 0.0.2     Jan12   MR # simplification: Configuration is no-more, TestSet
-#                        contains list of TestCase-s 
+#   1   Mar11   MR # initial version
+#   2   Jan12   MR # simplification: Configuration is no-more, TestSet contains list of TestCase-s 
+#   2   Dec14   MR # ported to Py3
 #                       
 ##############################################################################
-from __future__ import print_function
 
 __description__ = "TestSet class implementation"
-__version__ = "0.0.2"
+__version__ = "3"
 __author__ = "Miran R."
 
 import json
-import StringIO
-from runnable import Runnable
-from testplan import TestPlan
-from action import ActionJsonDecoder
-from testcase import TestCaseJsonDecoder
-from teststatus import TestStatus
-from sut import SystemUnderTest, SutJsonDecoder
+import io
+from pyrus.core.runnable import Runnable
+from pyrus.core.testplan import TestPlan
+from pyrus.core.action import ActionJsonDecoder
+from pyrus.core.testcase import TestCaseJsonDecoder
+from pyrus.core.teststatus import TestStatus
+from pyrus.core.sut import SystemUnderTest, SutJsonDecoder
+from functools import reduce
 
 class TestSet(TestPlan, Runnable):
     """
         TestSet -
     """
 
-    def __init__(self, name, testplan, 
-                             setup=None, cleanup=None, cases=None, sut=None):
+    def __init__(self, name, testplan, setup=None, cleanup=None, cases=None, sut=None):
         assert name is not None
         super(TestSet, self).__init__(name, setup, cleanup)
         # a list of configurations
@@ -74,8 +73,7 @@ class TestSet(TestPlan, Runnable):
         p = "<TestPlan>{}</TestPlan>".format(self.testplan)
         s = "<Setup>\n{}</Setup>".format(self.setup.toXml())
         c = "<Cleanup>\n{}</Cleanup>".format(self.cleanup.toXml())
-        cases = reduce(lambda x,y: "\n".join((x, y)),
-                    [case.toXml() for case in self.testcases])
+        cases = reduce(lambda x,y: "\n".join((x, y)), [case.toXml() for case in self.testcases])
         return "\n".join((n, p, sut, s, c, cases, "</TestSet>\n"))
 
     def toHtml(self, short=True, cssClass=None):
@@ -85,23 +83,17 @@ class TestSet(TestPlan, Runnable):
         return self._longHtml(cssClass)   
 
     def _shortHtml(self, cssClass):       
-        sStatus = TestStatus.PASS if self.setup.returncode == 0 else \
-                TestStatus.FAIL
-        cStatus = TestStatus.PASS if self.cleanup.returncode == 0 else \
-                TestStatis.FAIL
+        sStatus = TestStatus.PASS if self.setup.returncode == 0 else TestStatus.FAIL
+        cStatus = TestStatus.PASS if self.cleanup.returncode == 0 else TestStatus.FAIL
         if cssClass:
             d = """<div id="testset" class="{}">""".format(cssClass)
         else:
             d = """<div id="testset">"""
         h = "<h1>Test Set: {}</h1>".format(self.name)
-        p = "<p>This test set is related to <b>{}</b> test plan.</p>".format(
-                self.testplan)
-        s = "<table><tr><td>Setup</td><td>{}</td><td>{}</td></tr>".format(
-                self.setup.toHtml(), sStatus)
-        c = "<tr><td>Cleanup</td><td>{}</td><td>{}</td></tr></table>".format(
-                self.cleanup.toHtml(), cStatus)
-        cases = reduce(self.__join, 
-                       [case.toHtml(True) for case in self.testcases])
+        p = "<p>This test set is related to <b>{}</b> test plan.</p>".format(self.testplan)
+        s = "<table><tr><td>Setup</td><td>{}</td><td>{}</td></tr>".format(self.setup.toHtml(), sStatus)
+        c = "<tr><td>Cleanup</td><td>{}</td><td>{}</td></tr></table>".format(self.cleanup.toHtml(), cStatus)
+        cases = reduce(self.__join, [case.toHtml(True) for case in self.testcases])
         return "\n".join((d, h, p, s, c, cases,"</div>"))
 
     def _longHtml(self, cssClass):       
@@ -110,12 +102,10 @@ class TestSet(TestPlan, Runnable):
         else:
             d = """<div id="testset">"""
         h = "<h1>Test Set: {}</h1>".format(self.name)
-        p = "This test set is related to <b>{}</b> test plan.<br>".format(
-                self.testplan)
+        p = "This test set is related to <b>{}</b> test plan.<br>".format(self.testplan)
         s = "<p>Setup: {}</p>".format(self.setup.toHtml(short=False))
         c = "<p>Cleanup: {}</p>".format(self.cleanup.toHtml(short=False))
-        cases = reduce(self.__join,
-                      [case.toHtml(False) for case in self.testcases])
+        cases = reduce(self.__join, [case.toHtml(False) for case in self.testcases])
         return "\n".join((d, p, h, s, c, cases,"</div>"))
         
     def __join(self, s1, s2):
@@ -132,7 +122,7 @@ class TestSet(TestPlan, Runnable):
         """Overriden method from Runnable mixin."""
         # define indentation level for printouts   
         indent_lvl = 1
-        text = StringIO.StringIO()
+        text = io.StringIO()
         text.write("{}\n".format("#"*79))
         text.write("Starting execution of test set: '{}'\n".format(self.name))
         text.write("{}\n".format("#"*79))
@@ -141,13 +131,11 @@ class TestSet(TestPlan, Runnable):
         # execute cases
         for case in self.testcases:
             if not failed: 
-                text.write("\n  >>> Executing test case: '{}'".format(
-                                                                     case.name))
+                text.write("\n  >>> Executing test case: '{}'".format(case.name))
                 output = case.execute(**kwargs)
                 text.write("  ### OUTPUT ###\n{}\n### END ###\n".format(output))
             else:
-                text.write("\n  >>> Configuration '{}' SKIPPED)\n".format(
-                                                                     case.name))
+                text.write("\n  >>> Configuration '{}' SKIPPED)\n".format(case.name))
         # execute cleanup actions    
         self._executeCleanup(text, indent_lvl, failed, **kwargs)
         text.write("{}\n".format("#"*79))

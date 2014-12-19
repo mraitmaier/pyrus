@@ -15,7 +15,7 @@
 
 """    
 __description__ =  "dos to unix text conversion"
-__version__ = "1.0.0"
+__version__ = "2"
 __author__ = "Miran R."
 
 import os, sys
@@ -34,7 +34,7 @@ def dos2unix(textfile):
     unix-style line ending(ctrl-n)"""
     # check for existence
     if not os.path.exists(textfile):
-        print "File '%s' does not exist. Exiting..." % textfile
+        print("File '%s' does not exist. Exiting..." % textfile)
         return False
     # create a command to be executed and run it
     cmd = "%s %s" % (EXE, textfile)
@@ -45,12 +45,12 @@ def dos2unix(textfile):
     return False
     
 def test():
-    print "Testing dos2unix utility..."
+    print("Testing dos2unix utility...")
     f = "test/log.txt"
     status = dos2unix(f)
-    print "status: %s" % status 
-    print "Stop."
+    print("status: %s" % status) 
+    print("Stop.")
 
 if __name__ == "__main__":
-    print __doc__
+    print(__doc__)
     test()

@@ -4,16 +4,16 @@
    NOTE: this module should not be run as a standalone scripts, excepts for
    built-in tests.
 """
-# HISTORY ####################################################################
+# HISTORY #####################################################################################################################
 #
-#   0.0.1   Jun11   MR  Initial version of the file
-#   0.0.2   Jan12   MR  Some simplification and bug-fixes (setup & cleanup
-#                       actions were executed twice!)
-##############################################################################
-from __future__ import print_function
+#   1   Jun11   MR  Initial version of the file
+#   2   Jan12   MR  Some simplification and bug-fixes (setup & cleanup actions were executed twice!)
+#   3   Dec14   MR  Ported to Py3
+#
+###############################################################################################################################
 
 __description__ = "Pyrus test runner application"
-__version__ = "0.0.2"
+__version__ = "3"
 __author__ = "Miran R."
 
 import sys

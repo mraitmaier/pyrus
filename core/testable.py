@@ -7,14 +7,15 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Mar11   MR # Initial version
+#   1   Mar11   MR  Initial version
+#   2   Dec14   MR  Ported to Py3
 #                       
 ##############################################################################
 __description__ = "a _Testable abstract class definition"
-__version__ = "0.1"
+__version__ = "2"
 _author__ = "Miran R."
 
-from action import _Action, NoOpAction
+from pyrus.core.action import _Action, NoOpAction
 
 class _Testable(object):
     """

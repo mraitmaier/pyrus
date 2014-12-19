@@ -7,24 +7,24 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Mar11   MR # initial version
-# 0.0.2     Jan12   MR # simplification: TestResult is deprecated, using
-#                        (new) TestStatus instead
+#   1   Mar11   MR # initial version
+#   2   Jan12   MR # simplification: TestResult is deprecated, using (new) TestStatus instead
+#   3   Dec14   MR # ported to Py3
 #                       
 ##############################################################################
-from __future__ import print_function
 
 __description__ = "TestCase class implementation"
-__version__ = "0.0.1"
+__version__ = "3"
 __author__ = "Miran R."
 
 import json
-import StringIO
-from testable import _Testable
-from runnable import Runnable
-from action import AutomatedAction, NoOpAction, ManualAction, ActionJsonDecoder
-from teststep import TestStep, TestStepJsonDecoder
-from teststatus import TestStatus, toTestStatus
+import io
+from functools import reduce
+from pyrus.core.testable import _Testable
+from pyrus.core.runnable import Runnable
+from pyrus.core.action import AutomatedAction, NoOpAction, ManualAction, ActionJsonDecoder
+from pyrus.core.teststep import TestStep, TestStepJsonDecoder
+from pyrus.core.teststatus import TestStatus, toTestStatus
 
 class TestCase(_Testable, Runnable):
     """
@@ -182,7 +182,7 @@ class TestCase(_Testable, Runnable):
         # define indent level for printouts 
         indent_lvl = 3
         # string builder 
-        txt = StringIO.StringIO()
+        txt = io.StringIO()
         # execute setup actions    
         failed = self._executeSetup(txt, indent_lvl, **kwargs)
         # execute steps

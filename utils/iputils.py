@@ -5,7 +5,7 @@
 import sys, re, os
 
 NAME = "IP utils"
-VERSION = "1.0."
+VERSION = "2."
 AUTHOR = "Miran R."
 
 PLATFORM = sys.platform
@@ -91,7 +91,7 @@ def mask_bits_from_dotted(mask):
       lst = mask.split('.')
       for num in lst:
          bla = int(num)
-         if bla in MASK_VALS.keys():
+         if bla in list(MASK_VALS.keys()):
             bits += MASK_VALS[bla]
          else:
             raise ValueError("ERROR: subnet mask is not valid.")
@@ -107,7 +107,7 @@ def check_mask(mask):
       return False
    # check for list for valid values   
    for num in lst:
-      if int(num) not in MASK_VALS.keys():
+      if int(num) not in list(MASK_VALS.keys()):
          return False
    # check continuousness of the list       
    import copy
@@ -118,4 +118,4 @@ def check_mask(mask):
    return True    
 
 if __name__ == '__main__':
-   print __doc__
+   print(__doc__)

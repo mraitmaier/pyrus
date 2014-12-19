@@ -3,12 +3,12 @@
 import beaker.util as util
 if util.py3k:
     try:
-        import dbm as anydbm
+        import dbm.ndbm as anydbm
     except:
-        import dumbdbm as anydbm
+        import dbm.dumb as anydbm
 else:
-    import anydbm
-import cPickle
+    import dbm
+import pickle
 import logging
 import os
 import time
@@ -486,7 +486,7 @@ class AbstractDictionaryNSManager(NamespaceManager):
         self.dictionary.clear()
 
     def keys(self):
-        return self.dictionary.keys()
+        return list(self.dictionary.keys())
 
 
 class MemoryNamespaceManager(AbstractDictionaryNSManager):
@@ -592,19 +592,19 @@ class DBMNamespaceManager(OpenResourceNamespaceManager):
             os.remove(f)
 
     def __getitem__(self, key):
-        return cPickle.loads(self.dbm[key])
+        return pickle.loads(self.dbm[key])
 
     def __contains__(self, key):
         return key in self.dbm
 
     def __setitem__(self, key, value):
-        self.dbm[key] = cPickle.dumps(value)
+        self.dbm[key] = pickle.dumps(value)
 
     def __delitem__(self, key):
         del self.dbm[key]
 
     def keys(self):
-        return self.dbm.keys()
+        return list(self.dbm.keys())
 
 
 class FileNamespaceManager(OpenResourceNamespaceManager):
@@ -662,7 +662,7 @@ class FileNamespaceManager(OpenResourceNamespaceManager):
     def do_open(self, flags, replace):
         if not replace and self.file_exists(self.file):
             fh = open(self.file, 'rb')
-            self.hash = cPickle.load(fh)
+            self.hash = pickle.load(fh)
             fh.close()
 
         self.flags = flags
@@ -670,7 +670,7 @@ class FileNamespaceManager(OpenResourceNamespaceManager):
     def do_close(self):
         if self.flags == 'c' or self.flags == 'w':
             fh = open(self.file, 'wb')
-            cPickle.dump(self.hash, fh)
+            pickle.dump(self.hash, fh)
             fh.close()
 
         self.hash = {}
@@ -698,7 +698,7 @@ class FileNamespaceManager(OpenResourceNamespaceManager):
         del self.hash[key]
 
     def keys(self):
-        return self.hash.keys()
+        return list(self.hash.keys())
 
 
 #### legacy stuff to support the old "Container" class interface
@@ -724,7 +724,7 @@ class ContainerMeta(type):
                      expiretime=expiretime, starttime=starttime)
 
 
-class Container(object):
+class Container(object, metaclass=ContainerMeta):
     """Implements synchronization and value-creation logic
     for a 'value' stored in a :class:`.NamespaceManager`.
 
@@ -732,7 +732,6 @@ class Container(object):
     :class:`.Value` class is now used for this purpose.
 
     """
-    __metaclass__ = ContainerMeta
     namespace_class = NamespaceManager
 
 

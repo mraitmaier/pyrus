@@ -8,14 +8,16 @@
 """
 # HISTORY ####################################################################
 #
+#   1   Dec11   MR Initial version
+#   2   Dec14   MR Ported to Py3
+#
 ##############################################################################
 __description__ = "a TclScript class implementation"
-__version__ = "0.0.1"
+__version__ = "3"
 __author__ = "Miran R."
 
 import os
-from executable import Executable
-#from subprocess import Popen, PIPE, STDOUT
+from pyrus.core.executable import Executable
 
 _EXECUTABLE = "tclsh"
 
@@ -37,37 +39,37 @@ NO_SCRIPT = "test/scripts/tst.tcl"      # non-existing script
 
 def runtests():
     sc = TclScript(TEST_SCRIPT)
-    print(sc.environ)
-    print("Executing '{}'...".format(sc.command))
-    print(str(sc))
+    print((sc.environ))
+    print(("Executing '{}'...".format(sc.command)))
+    print((str(sc)))
     rc, output = sc.execute()
-    print("OUTPUT:\n'{}'".format(output))
-    print("RC={}".format(rc))
+    print(("OUTPUT:\n'{}'".format(output)))
+    print(("RC={}".format(rc)))
     print("########## args test")
     sc = TclScript(TEST_SCRIPT)
-    print("Executing '{}'...".format(sc.command))
-    print(str(sc))
+    print(("Executing '{}'...".format(sc.command)))
+    print((str(sc)))
     rc, output = sc.execute("arg1 arg2 arg3")
-    print("OUTPUT:\n'{}'".format(output))
-    print("RC={}".format(rc))
+    print(("OUTPUT:\n'{}'".format(output)))
+    print(("RC={}".format(rc)))
     print("########## real args test")
     sc = TclScript(TEST_SCRIPT)
-    print(sc.command)
+    print((sc.command))
     print("Executing...")
     rc, output = sc.execute()
-    print(str(sc))
-    print("OUTPUT:\n'{}'".format(output))
-    print("RC={}".format(rc))
+    print((str(sc)))
+    print(("OUTPUT:\n'{}'".format(output)))
+    print(("RC={}".format(rc)))
     print("########## non-existing script")
     sc = TclScript(NO_SCRIPT)
-    print("Executing '{}'...".format(sc.command))
+    print(("Executing '{}'...".format(sc.command)))
     rc, output = sc.execute()
-    print(str(sc))
-    print("OUTPUT:\n'{}'".format(output))
-    print("RC={}".format(rc))
+    print((str(sc)))
+    print(("OUTPUT:\n'{}'".format(output)))
+    print(("RC={}".format(rc)))
 
 
 if __name__ == "__main__":
-    print __doc__
+    print(__doc__)
     runtests()
 

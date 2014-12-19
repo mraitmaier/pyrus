@@ -1,7 +1,7 @@
 """
     mongo.py - a MongoDB connector class
 """
-from __future__ import print_function
+
 from pymongo import Connection 
 
 _DEF_MONGODB_HOST = "localhost"
@@ -9,11 +9,9 @@ _DEF_MONGODB_PORT = 27017
 _DEF_MONGODB_NAME = "pyrus"
 
 class MongoDbConn(object):
-    """
-    """
+    """ """
 
-    def __init__(self, dbname=_DEF_MONGODB_NAME, auto=False, 
-                       host=_DEF_MONGODB_HOST, port=_DEF_MONGODB_PORT):
+    def __init__(self, dbname=_DEF_MONGODB_NAME, auto=False, host=_DEF_MONGODB_HOST, port=_DEF_MONGODB_PORT):
         """Ctor"""
         self._opened = False
         self._dbname = dbname
@@ -67,6 +65,8 @@ class MongoDbConn(object):
     def isOpen(self):
         """check if MongoDB is open."""
         return self._opened
+
+#################################################################################################
 
 def runtests():
     print(">>> Starting tests...")

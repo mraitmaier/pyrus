@@ -7,18 +7,18 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Mar11   MR # This is just an example hot to write history notes
+#  1 Mar11   MR # Initial version
+#  2 Dec14   MR # Ported to Py3
 #                       
 ##############################################################################
-from __future__ import print_function
 
 __description__ = "a requirement class implementation"
-__version__ = "0.0.1"
+__version__ = "2"
 _author__ = "Miran R."
 
 import json
-from priority import Priority, toPriority
-from enum import enum
+from pyrus.core.priority import Priority, toPriority
+from pyrus.core.enum import enum
 
 RequirementStatus = enum(("NEW", "ACKNOWLEDGED", "PENDING", "APPROVED",
                           "REJECTED", "UNKNOWN", "ERROR"))

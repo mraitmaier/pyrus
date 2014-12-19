@@ -7,12 +7,12 @@
 """
 # HISTORY ####################################################################
 #                       
-# 1  Dec12   MR # Added the implementation of the Password class
-#                       
+# 1  Dec12  MR  Added the implementation of the Password class
+# 2  Dec14  MR  Ported to Py3 (finally!)                     
 ##############################################################################
-from __future__ import print_function
+
 __description__ = "Password class implementation"
-__version__ = "1"
+__version__ = "2"
 _author__ = "Miran R."
 
 import hashlib
@@ -42,7 +42,7 @@ class Password(object):
         """Hashes (with MD5) the given password. Salt is also inserted into
         password before the actual hashing."""
         assert to_hash is not None
-        return hashlib.md5(self._salt + to_hash).hexdigest()
+        return hashlib.md5(bytes(self._salt + to_hash, 'utf-8')).hexdigest()
 
     def compare(self, to_compare):
         """Compares the existing password with given string."""

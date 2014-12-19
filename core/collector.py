@@ -7,29 +7,29 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Mar11   MR # This is just an example hot to write history notes
+#   1   Mar11   MR  Initial version 
+#   2   Dec14   MR  Ported to Py3
 #                       
 ##############################################################################
 __description__ = "an implementation of the Collector class"
-__version__ = "0.0.1"
+__version__ = "2"
 _author__ = "Miran R."
 
 import json 
 import os
-from error import Error
-from testset import TestSet, TestSetJsonDecoder
-from action import ActionJsonDecoder
 from xml.etree.ElementTree import parse
-from action import NoOpAction, ManualAction, AutomatedAction
-from teststep import TestStep
-from testcase import TestCase
-from sut import SystemUnderTest
-from teststatus import TestStatus, toTestStatus
+from pyrus.core.error import Error
+from pyrus.core.testset import TestSet, TestSetJsonDecoder
+from pyrus.core.action import ActionJsonDecoder
+from pyrus.core.action import NoOpAction, ManualAction, AutomatedAction
+from pyrus.core.teststep import TestStep
+from pyrus.core.testcase import TestCase
+from pyrus.core.sut import SystemUnderTest
+from pyrus.core.teststatus import TestStatus, toTestStatus
 
 JSON_EXT = ".json"
 XML_EXT = ".xml"
 #TEXT_EXT = [".txt", ".dat"]
-
 
 class Collector(object):
     """
@@ -175,7 +175,7 @@ FILENAME = "test/testset.json"
 def runtests():
     print("Starting unit tests...")
     c = Collector(FILENAME)
-    print(str(c))
+    print((str(c)))
     print("Stop")
 
 if __name__ == '__main__':

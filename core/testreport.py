@@ -7,16 +7,16 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Apr11   MR # Initial version
+#   1   Apr11   MR # Initial version
+#   2   Dec14   MR # Ported to Py3
 #                       
 ##############################################################################
-from __future__ import print_function
 
 __description__ = "a TestReport class implementation"
-__version__ = "0.0.1"
+__version__ = "3"
 _author__ = "Miran R."
 
-from testset import TestSet, TestSetJsonDecoder
+from pyrus.core.testset import TestSet, TestSetJsonDecoder
 import json
 from datetime import datetime 
 
@@ -37,8 +37,7 @@ class TestReport(object):
         self._finish = finished
 
     def __str__(self):
-        return "TestReport: test set '{}' executed from {} to {}.".format(
-                                self.testset.name, self.started, self.finished)
+        return "TestReport: test set '{}' executed from {} to {}.".format(self.testset.name, self.started, self.finished)
 
     @property
     def testset(self):

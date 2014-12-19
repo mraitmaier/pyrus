@@ -7,15 +7,16 @@
 """
 # HISTORY ####################################################################
 #                       
-# 0.0.1     Mar11   MR # initial version
-# 0.0.2     Jan12   MR # Priority class reimplemented using enums
+#  1 Mar11   MR # initial version
+#  2 Jan12   MR # Priority class reimplemented using enums
+#  3 Jan12   MR # Ported to Py3
 #                       
 ##############################################################################
 __description__ = "a priority class definition"
-__version__ = "0.0.1"
+__version__ = "3"
 _author__ = "Miran R."
 
-from enum import enum
+from pyrus.core.enum import enum
 
 Priority = enum(("ERROR", "LOW", "MEDIUM", "HIGH"))
 

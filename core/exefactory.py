@@ -3,17 +3,17 @@
 
 """   
 import os
-from pythonscript import PythonScript
-from perlscript import PerlScript
-from tclscript import TclScript
-from ixiatclscript import IxiaTclScript
-from expectscript import ExpectScript
-from nativeexecutable import NativeExecutable
-from javaexecutable import JavaExecutable
-from rubyscript import RubyScript
-from groovyscript import GroovyScript
-from luascript import LuaScript
-from juliaprogram import JuliaProgram
+from pyrus.core.pythonscript import PythonScript
+from pyrus.core.perlscript import PerlScript
+from pyrus.core.tclscript import TclScript
+from pyrus.core.ixiatclscript import IxiaTclScript
+from pyrus.core.expectscript import ExpectScript
+from pyrus.core.nativeexecutable import NativeExecutable
+from pyrus.core.javaexecutable import JavaExecutable
+from pyrus.core.rubyscript import RubyScript
+from pyrus.core.groovyscript import GroovyScript
+from pyrus.core.luascript import LuaScript
+from pyrus.core.juliaprogram import JuliaProgram
 
 __description__ = "executable factory function implementation"
 __version__ = "0.6"
@@ -71,5 +71,5 @@ def runtests():
     pass
  
 if __name__ == "__main__":
-   print __doc__
+   print(__doc__)
    runtests()

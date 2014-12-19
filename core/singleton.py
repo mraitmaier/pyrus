@@ -55,16 +55,16 @@ class SingletonTest(Test, Singleton):
 
 def runtests():
     x = SingletonTest(10)
-    print("Initial: " + str(x.a))
-    print(str(x))
+    print(("Initial: " + str(x.a)))
+    print((str(x)))
     print("###########################")
     y = SingletonTest(33)
-    print("Second: " + str(x.a))
-    print(str(x))
+    print(("Second: " + str(x.a)))
+    print((str(x)))
     print("###########################")
     y = SingletonTest(666)
-    print("Third: " + str(x.a))
-    print(str(x))
+    print(("Third: " + str(x.a)))
+    print((str(x)))
 
 if __name__ == "__main__":
     print(__doc__)

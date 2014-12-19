@@ -11,15 +11,17 @@
 """
 # HISTORY ####################################################################
 #
-# 0.0.1     Jan12   MR # The initial version of the file
+#  1 Jan12   MR # The initial version of the file
+#  2 Dec14   MR # Ported to Py3
+#
 ##############################################################################
-from __future__ import print_function
+
 
 __description__ = "TestStatus class implementation"
-__version__ = "0.0.1"
+__version__ = "3"
 __author__ = "Miran R."
 
-from enum import enum
+from pyrus.core.enum import enum
 
 TestStatus = enum(("PASS", "FAIL", "XFAIL", "NOT_TESTED", "UNKNOWN"))
 

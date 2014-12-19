@@ -16,7 +16,7 @@ License: MIT (see LICENSE for details)
 from __future__ import with_statement
 
 __author__ = 'Marcel Hellkamp'
-__version__ = '0.12.3'
+__version__ = '0.12.7'
 __license__ = 'MIT'
 
 # The gevent server adapter needs to patch some modules before they are imported
@@ -477,7 +477,7 @@ class Route(object):
         #: Additional keyword arguments passed to the :meth:`Bottle.route`
         #: decorator are stored in this dictionary. Used for route-specific
         #: plugin configuration and meta-data.
-        self.config = ConfigDict().load_dict(config)
+        self.config = ConfigDict().load_dict(config, make_namespaces=True)
 
     def __call__(self, *a, **ka):
         depr("Some APIs changed to return Route() instances instead of"\
@@ -550,7 +550,7 @@ class Route(object):
             to recover the original function before inspection. '''
         return getargspec(self.get_undecorated_callback())[0]
 
-    def get_config(key, default=None):
+    def get_config(self, key, default=None):
         ''' Lookup a config field and return its value, first checking the
             route.config, then route.app.config.'''
         for conf in (self.config, self.app.conifg):
@@ -1115,7 +1115,8 @@ class BaseRequest(object):
             property holds the parsed content of the request body. Only requests
             smaller than :attr:`MEMFILE_MAX` are processed to avoid memory
             exhaustion. '''
-        if 'application/json' in self.environ.get('CONTENT_TYPE', ''):
+        ctype = self.environ.get('CONTENT_TYPE', '').lower().split(';')[0]
+        if ctype == 'application/json':
             return json_loads(self._get_body_string())
         return None
 
@@ -1137,17 +1138,17 @@ class BaseRequest(object):
                 header += c
                 if not c: raise err
                 if len(header) > bufsize: raise err
-            size, sep, junk = header.partition(sem)
+            size, _, _ = header.partition(sem)
             try:
                 maxread = int(tonat(size.strip()), 16)
             except ValueError:
                 raise err
             if maxread == 0: break
-            buffer = bs
+            buff = bs
             while maxread > 0:
-                if not buffer:
-                    buffer = read(min(maxread, bufsize))
-                part, buffer = buffer[:maxread], buffer[maxread:]
+                if not buff:
+                    buff = read(min(maxread, bufsize))
+                part, buff = buff[:maxread], buff[maxread:]
                 if not part: raise err
                 yield part
                 maxread -= len(part)
@@ -1226,6 +1227,7 @@ class BaseRequest(object):
         elif py3k:
             args['encoding'] = 'utf8'
         data = cgi.FieldStorage(**args)
+        self['_cgi.FieldStorage'] = data #http://bugs.python.org/issue18394#msg207958
         data = data.list or []
         for item in data:
             if item.filename:
@@ -1773,13 +1775,13 @@ class _ImportRedirect(object):
 
     def find_module(self, fullname, path=None):
         if '.' not in fullname: return
-        packname, modname = fullname.rsplit('.', 1)
+        packname = fullname.rsplit('.', 1)[0]
         if packname != self.name: return
         return self
 
     def load_module(self, fullname):
         if fullname in sys.modules: return sys.modules[fullname]
-        packname, modname = fullname.rsplit('.', 1)
+        modname = fullname.rsplit('.', 1)[1]
         realname = self.impmask % modname
         __import__(realname)
         module = sys.modules[fullname] = sys.modules[realname]
@@ -1994,9 +1996,77 @@ class WSGIHeaderDict(DictMixin):
 class ConfigDict(dict):
     ''' A dict-like configuration storage with additional support for
         namespaces, validators, meta-data, on_change listeners and more.
-    '''
 
+        This storage is optimized for fast read access. Retrieving a key
+        or using non-altering dict methods (e.g. `dict.get()`) has no overhead
+        compared to a native dict.
+    '''
     __slots__ = ('_meta', '_on_change')
+
+    class Namespace(DictMixin):
+
+        def __init__(self, config, namespace):
+            self._config = config
+            self._prefix = namespace
+
+        def __getitem__(self, key):
+            depr('Accessing namespaces as dicts is discouraged. '
+                 'Only use flat item access: '
+                 'cfg["names"]["pace"]["key"] -> cfg["name.space.key"]') #0.12
+            return self._config[self._prefix + '.' + key]
+
+        def __setitem__(self, key, value):
+            self._config[self._prefix + '.' + key] = value
+
+        def __delitem__(self, key):
+            del self._config[self._prefix + '.' + key]
+
+        def __iter__(self):
+            ns_prefix = self._prefix + '.'
+            for key in self._config:
+                ns, dot, name = key.rpartition('.')
+                if ns == self._prefix and name:
+                    yield name
+
+        def keys(self): return [x for x in self]
+        def __len__(self): return len(self.keys())
+        def __contains__(self, key): return self._prefix + '.' + key in self._config
+        def __repr__(self): return '<Config.Namespace %s.*>' % self._prefix
+        def __str__(self): return '<Config.Namespace %s.*>' % self._prefix
+
+        # Deprecated ConfigDict features
+        def __getattr__(self, key):
+            depr('Attribute access is deprecated.') #0.12
+            if key not in self and key[0].isupper():
+                self[key] = ConfigDict.Namespace(self._config, self._prefix + '.' + key)
+            if key not in self and key.startswith('__'):
+                raise AttributeError(key)
+            return self.get(key)
+
+        def __setattr__(self, key, value):
+            if key in ('_config', '_prefix'):
+                self.__dict__[key] = value
+                return
+            depr('Attribute assignment is deprecated.') #0.12
+            if hasattr(DictMixin, key):
+                raise AttributeError('Read-only attribute.')
+            if key in self and self[key] and isinstance(self[key], self.__class__):
+                raise AttributeError('Non-empty namespace attribute.')
+            self[key] = value
+
+        def __delattr__(self, key):
+            if key in self:
+                val = self.pop(key)
+                if isinstance(val, self.__class__):
+                    prefix = key + '.'
+                    for key in self:
+                        if key.startswith(prefix):
+                            del self[prefix+key]
+
+        def __call__(self, *a, **ka):
+            depr('Calling ConfDict is deprecated. Use the update() method.') #0.12
+            self.update(*a, **ka)
+            return self
 
     def __init__(self, *a, **ka):
         self._meta = {}
@@ -2021,22 +2091,28 @@ class ConfigDict(dict):
                 self[key] = value
         return self
 
-    def load_dict(self, source, namespace=''):
-        ''' Load values from a dictionary structure. Nesting can be used to
+    def load_dict(self, source, namespace='', make_namespaces=False):
+        ''' Import values from a dictionary structure. Nesting can be used to
             represent namespaces.
             
-            >>> c.load_dict({'some': {'namespace': {'key': 'value'} } })
-            {'some.namespace.key': 'value'}            
+            >>> ConfigDict().load_dict({'name': {'space': {'key': 'value'}}})
+            {'name.space.key': 'value'}
         '''
-        for key, value in source.items():
-            if isinstance(key, str):
-                nskey = (namespace + '.' + key).strip('.')
+        stack = [(namespace, source)]
+        while stack:
+            prefix, source = stack.pop()
+            if not isinstance(source, dict):
+                raise TypeError('Source is not a dict (r)' % type(key))
+            for key, value in source.items():
+                if not isinstance(key, str):
+                    raise TypeError('Key is not a string (%r)' % type(key))
+                full_key = prefix + '.' + key if prefix else key
                 if isinstance(value, dict):
-                    self.load_dict(value, namespace=nskey)
+                    stack.append((full_key, value))
+                    if make_namespaces:
+                        self[full_key] = self.Namespace(self, full_key)
                 else:
-                    self[nskey] = value
-            else:
-                raise TypeError('Key has type %r (not a string)' % type(key))
+                    self[full_key] = value
         return self
 
     def update(self, *a, **ka):
@@ -2053,10 +2129,12 @@ class ConfigDict(dict):
     def setdefault(self, key, value):
         if key not in self:
             self[key] = value
+        return self[key]
 
     def __setitem__(self, key, value):
         if not isinstance(key, str):
             raise TypeError('Key has type %r (not a string)' % type(key))
+
         value = self.meta_get(key, 'filter', lambda x: x)(value)
         if key in self and self[key] is value:
             return
@@ -2064,8 +2142,11 @@ class ConfigDict(dict):
         dict.__setitem__(self, key, value)
 
     def __delitem__(self, key):
-        self._on_change(key, None)
         dict.__delitem__(self, key)
+
+    def clear(self):
+        for key in self:
+            del self[key]
 
     def meta_get(self, key, metafield, default=None):
         ''' Return the value of a meta field for a key. '''
@@ -2086,7 +2167,9 @@ class ConfigDict(dict):
     def __getattr__(self, key):
         depr('Attribute access is deprecated.') #0.12
         if key not in self and key[0].isupper():
-            self[key] = ConfigDict()
+            self[key] = self.Namespace(self, key)
+        if key not in self and key.startswith('__'):
+            raise AttributeError(key)
         return self.get(key)
 
     def __setattr__(self, key, value):
@@ -2095,12 +2178,18 @@ class ConfigDict(dict):
         depr('Attribute assignment is deprecated.') #0.12
         if hasattr(dict, key):
             raise AttributeError('Read-only attribute.')
-        if key in self and self[key] and isinstance(self[key], ConfigDict):
+        if key in self and self[key] and isinstance(self[key], self.Namespace):
             raise AttributeError('Non-empty namespace attribute.')
         self[key] = value
 
     def __delattr__(self, key):
-        if key in self: del self[key]
+        if key in self:
+            val = self.pop(key)
+            if isinstance(val, self.Namespace):
+                prefix = key + '.'
+                for key in self:
+                    if key.startswith(prefix):
+                        del self[prefix+key]
 
     def __call__(self, *a, **ka):
         depr('Calling ConfDict is deprecated. Use the update() method.') #0.12
@@ -3253,7 +3342,10 @@ class SimpleTemplate(BaseTemplate):
 
     @cached_property
     def code(self):
-        source = self.source or open(self.filename, 'rb').read()
+        source = self.source
+        if not source:
+            with open(self.filename, 'rb') as f:
+                source = f.read()
         try:
             source, encoding = touni(source), 'utf8'
         except UnicodeError:
@@ -3388,7 +3480,7 @@ class StplParser(object):
         return ''.join(self.code_buffer)
 
     def read_code(self, multiline):
-        code_line, comment, start_line = '', '', self.lineno
+        code_line, comment = '', ''
         while True:
             m = self.re_tok.search(self.source[self.offset:])
             if not m:
@@ -3399,6 +3491,9 @@ class StplParser(object):
             code_line += self.source[self.offset:self.offset+m.start()]
             self.offset += m.end()
             _str, _com, _blk1, _blk2, _end, _cend, _nl = m.groups()
+            if code_line and (_blk1 or _blk2): # a if b else c
+                code_line += _blk1 or _blk2
+                continue
             if _str:    # Python string
                 code_line += _str
             elif _com:  # Python comment (up to EOL)

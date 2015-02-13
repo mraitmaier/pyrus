@@ -16,9 +16,6 @@ import logging, logging.handlers
 from key import _generate_key
 
 # page definitions
-#from license import license
-#from login import login_get, login_post
-#from index import index
 
 # default path for storing session file
 _DEFAULT_SESSION_PATH = './session'
@@ -26,7 +23,6 @@ _DEFAULT_SESSION_PATH = './session'
 _DEFAULT_LOG_PATH = './log/pyrusweb.log'
 
 # global var that stores the app configuration params
-#Cfg = None
 # read configuration file and store the params
 Cfg = read_config_file()
 
@@ -64,8 +60,7 @@ def post_get(name, default=''):
 
 def authenticated(func):
     '''Decorator to check whether current user is logged in.
-    source: http://stackoverflow.com/questions/11698473/
-    bottle-hooks-with-beaker-session-middleware-and-checking-logins
+    source: http://stackoverflow.com/questions/11698473/bottle-hooks-with-beaker-session-middleware-and-checking-logins
     '''
     def wrapped(*args, **kwargs):
 

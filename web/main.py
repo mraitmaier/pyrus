@@ -12,16 +12,24 @@ from core.cfgfile import read_config_file
 import bottle
 from pyrus.web.beaker.middleware import SessionMiddleware
 import logging, logging.handlers
-
 from key import _generate_key
 
 # page definitions
 
 # default path for storing session file
-_DEFAULT_SESSION_PATH = './session'
+#_DEFAULT_SESSION_PATH = './session'
 # default path for log file
-_DEFAULT_LOG_PATH = './log/pyrusweb.log'
+#_DEFAULT_LOG_PATH = './log/pyrusweb.log'
 
+# init some global stuff...
+pltfm = sys.platform
+if pltfm in ('win32', 'win64'):
+    _DEFAULT_SESSION_PATH = os.path.join(os.environ['USERPROFILE'], 'pyrus', 'session')
+    _DEFAULT_LOG_PATH = os.path.join(os.environ['USERPROFILE'], 'pyrus', 'pyrusweb.log')
+else:
+    _DEFAULT_SESSION_PATH = os.path.expanduser(os.path.join('~', 'pyrus', 'session'))
+    _DEFAULT_LOG_PATH =  os.path.expanduser(os.path.join('~', 'pyrus', 'pyrusweb.log'))
+    
 # global var that stores the app configuration params
 # read configuration file and store the params
 Cfg = read_config_file()
@@ -140,6 +148,7 @@ def user_is_logged(session, username):
     
 def create_logger(filename, syslog=None, debug=False):
     '''Creates the logger and the appropriate handlers.'''
+    assert filename is not None
     log = logging.getLogger("PyrusWeb")
     log.setLevel(logging.INFO)
     timeForm = "%Y-%m-%d %H:%M:%S"
@@ -171,10 +180,8 @@ def create_logger(filename, syslog=None, debug=False):
     return log
 
 if __name__ == "__main__":
-
     # create loggers
     logfile = Cfg['log_file'] if 'log_file' in Cfg else _DEFAULT_LOG_FILE
     log = create_logger(logfile, None)
-
     # run web app 
     bottle.run(app=app, host='localhost', port=8080, reloader=True)

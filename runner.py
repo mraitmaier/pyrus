@@ -35,9 +35,9 @@ from pyrus.db.mongo import MongoDbConn
 # Where to store results? Normally this is "$HOME/results".
 # Windows is of course an exception, we use %USERPROFILE% value as a base.    
 if sys.platform == "win32" or sys.platform == "win64":
-    PYRUS_RESULTS_DIR = os.path.join(os.environ["USERPROFILE"], "results")
+    PYRUS_RESULTS_DIR = os.path.join(os.environ["USERPROFILE"], "pyrus")
 else:
-    PYRUS_RESULTS_DIR = os.path.expanduser(os.path.join("~", "results"))
+    PYRUS_RESULTS_DIR = os.path.expanduser(os.path.join("~", "pyrus"))
 
 # utility strings are defined
 START_OUTPUT_STR = "### OUTPUT #{}".format("#"*24)
@@ -78,8 +78,7 @@ class Runner(object):
                   used as a base.
         debug   - enable debug mode (only for testing and debugging purposes)  
     """
-    def __init__(self, finput, workdir, logfile=None, syslog=None, cssfile=None,
-                                       xsltfile=None, debug=False):
+    def __init__(self, finput, workdir, logfile=None, syslog=None, cssfile=None, xsltfile=None, debug=False):
         assert finput is not None
         self._testset = None
         self._log = None
